@@ -10,6 +10,12 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Override connection string from env var (Railway double-underscore may not bind automatically)
+var dbConnEnv = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(dbConnEnv))
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = dbConnEnv;
+
 // Serilog
 builder.Host.UseSerilog((context, loggerConfig) =>
     loggerConfig.ReadFrom.Configuration(context.Configuration));
