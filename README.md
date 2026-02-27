@@ -143,7 +143,10 @@ schedule-asp-saas/
 |-----------|-----|
 | Docker Compose | Orquestracao local |
 | MailHog | Servidor SMTP para desenvolvimento |
-| Nginx | Proxy reverso (frontend em producao) |
+| Nginx | Proxy reverso (frontend Docker) |
+| Vercel | Hospedagem frontend (producao) |
+| Railway | Hospedagem backend (producao) |
+| Neon | PostgreSQL serverless (producao) |
 
 ---
 
@@ -278,18 +281,79 @@ O frontend estara disponivel em `http://localhost:4200` com proxy configurado pa
 
 ---
 
+## Deploy em Producao (Gratuito)
+
+A stack recomendada para producao gratuita:
+
+| Servico | Plataforma | Tier |
+|---------|-----------|------|
+| Frontend | [Vercel](https://vercel.com) | Free |
+| Backend | [Railway](https://railway.app) | Free trial ($5) |
+| PostgreSQL | [Neon](https://neon.tech) | Free (0.5GB) |
+| Email | [Brevo](https://brevo.com) | Free (300/dia) |
+
+### Passo a Passo
+
+#### 1. Neon (PostgreSQL)
+1. Criar conta em [neon.tech](https://neon.tech)
+2. Criar projeto "scheduly"
+3. Copiar connection string (incluir `SslMode=Require`)
+
+#### 2. Railway (Backend)
+1. Criar conta em [railway.app](https://railway.app)
+2. New Project → Deploy from GitHub
+3. Railway detecta o `railway.toml` automaticamente
+4. Configurar variaveis de ambiente (ver tabela abaixo)
+5. Copiar a URL publica gerada
+
+#### 3. Vercel (Frontend)
+1. Criar conta em [vercel.com](https://vercel.com)
+2. Import GitHub repo
+3. Configurar:
+   - Root Directory: `frontend`
+   - Build Command: `npm run build`
+   - Output Directory: `dist/scheduly-frontend/browser`
+4. Atualizar `ALLOWED_ORIGINS` no Railway com a URL do Vercel
+
+#### 4. Configurar API_URL no Vercel
+Em Settings → Environment Variables do projeto Vercel, adicionar:
+- `API_URL` = `https://sua-url.up.railway.app`
+
+O script `prebuild` gera automaticamente o `environment.prod.ts` com essa URL.
+
+---
+
 ## Variaveis de Ambiente
 
-| Variavel | Padrao | Descricao |
-|----------|--------|-----------|
-| `ConnectionStrings__DefaultConnection` | (ver appsettings) | Connection string PostgreSQL |
-| `Jwt__Secret` | (dev key) | Chave secreta JWT (min 32 chars) |
-| `Jwt__Issuer` | Scheduly | Emissor do token |
-| `Jwt__Audience` | Scheduly | Audiencia do token |
-| `Email__Host` | localhost | Host SMTP |
-| `Email__Port` | 1025 | Porta SMTP |
-| `Email__From` | noreply@scheduly.com | Email remetente |
-| `Email__EnableSsl` | false | SSL no SMTP |
+### Backend (.NET)
+
+| Variavel | Padrao | Obrigatoria | Descricao |
+|----------|--------|-------------|-----------|
+| `ASPNETCORE_ENVIRONMENT` | Development | Sim | Ambiente: Development ou Production |
+| `ConnectionStrings__DefaultConnection` | (ver appsettings) | Sim | Connection string PostgreSQL |
+| `Jwt__Secret` | (dev key) | Sim | Chave secreta JWT (min 32 chars) |
+| `Jwt__Issuer` | Scheduly | Nao | Emissor do token |
+| `Jwt__Audience` | Scheduly | Nao | Audiencia do token |
+| `Jwt__AccessTokenExpirationMinutes` | 15 | Nao | Expiracao do access token |
+| `Jwt__RefreshTokenExpirationDays` | 7 | Nao | Expiracao do refresh token |
+| `ALLOWED_ORIGINS` | (vazio = AllowAny) | Prod: Sim | Origens CORS permitidas (comma-separated) |
+| `Email__Host` | localhost | Sim | Host SMTP |
+| `Email__Port` | 1025 | Sim | Porta SMTP |
+| `Email__From` | noreply@scheduly.com | Nao | Email remetente |
+| `Email__FromName` | Scheduly | Nao | Nome do remetente |
+| `Email__EnableSsl` | false | Nao | Habilitar SSL no SMTP |
+| `Email__Username` | (vazio) | Prod: Sim | Usuario SMTP (autenticacao) |
+| `Email__Password` | (vazio) | Prod: Sim | Senha SMTP (autenticacao) |
+
+### Frontend (Vercel)
+
+| Variavel | Descricao |
+|----------|-----------|
+| `API_URL` | URL completa da API backend (ex: `https://sua-url.up.railway.app`) |
+
+O script `prebuild` (`scripts/set-env.js`) gera `environment.prod.ts` automaticamente a partir da env var `API_URL` durante o build do Vercel.
+
+Veja `.env.example` na raiz do projeto para referencia completa.
 
 ---
 
