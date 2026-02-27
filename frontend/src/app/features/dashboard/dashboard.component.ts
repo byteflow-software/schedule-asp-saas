@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -28,7 +28,7 @@ import { TenantDto } from '../../core/models/tenant.model';
         </a>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else {
         <div class="stats-grid">
@@ -163,7 +163,7 @@ export class DashboardComponent implements OnInit {
   private customerService = inject(CustomerService);
   private tenantService = inject(TenantService);
 
-  loading = true;
+  loading = signal(true);
   todayAppointments: AppointmentDto[] = [];
   totalCustomers = 0;
   weekAppointments = 0;
@@ -197,8 +197,8 @@ export class DashboardComponent implements OnInit {
       error: () => {},
     });
     this.tenantService.getMyTenant().subscribe({
-      next: (tenant) => { this.tenant = tenant; this.loading = false; },
-      error: () => { this.loading = false; },
+      next: (tenant) => { this.tenant = tenant; this.loading.set(false); },
+      error: () => { this.loading.set(false); },
     });
   }
 }

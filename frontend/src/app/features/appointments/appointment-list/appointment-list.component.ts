@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -68,7 +68,7 @@ import { CurrencyCentsPipe } from '../../../shared/pipes/currency-cents.pipe';
         </mat-form-field>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else if (appointments.length === 0) {
         <div class="empty-state">
@@ -177,7 +177,7 @@ export class AppointmentListComponent implements OnInit {
 
   appointments: AppointmentDto[] = [];
   columns = ['startTime', 'customerName', 'serviceName', 'userName', 'priceInCents', 'status', 'actions'];
-  loading = true;
+  loading = signal(true);
   fromDate = '';
   toDate = '';
   statusFilter = '';
@@ -197,7 +197,7 @@ export class AppointmentListComponent implements OnInit {
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     const from = `${this.fromDate}T00:00:00Z`;
     const to = `${this.toDate}T23:59:59Z`;
     this.appointmentService.getAll({ from, to, pageNumber: this.pageNumber }).subscribe({
@@ -211,9 +211,9 @@ export class AppointmentListComponent implements OnInit {
         this.totalCount = result.totalCount;
         this.hasPreviousPage = result.hasPreviousPage;
         this.hasNextPage = result.hasNextPage;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
@@ -33,7 +33,7 @@ import { AppointmentFormComponent } from '../appointment-form/appointment-form.c
         <button mat-button (click)="goToday()">Hoje</button>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else {
         <div class="calendar-grid">
@@ -125,7 +125,7 @@ export class AppointmentCalendarComponent implements OnInit {
   private appointmentService = inject(AppointmentService);
   private dialog = inject(MatDialog);
 
-  loading = true;
+  loading = signal(true);
   appointments: AppointmentDto[] = [];
   weekStart = this.getWeekStart(new Date());
   weekDays: { name: string; date: Date }[] = [];
@@ -152,7 +152,7 @@ export class AppointmentCalendarComponent implements OnInit {
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     const fromDate = this.weekStart;
     const endDate = new Date(this.weekStart);
     endDate.setDate(endDate.getDate() + 6);
@@ -161,9 +161,9 @@ export class AppointmentCalendarComponent implements OnInit {
     this.appointmentService.getAll({ from, to, pageSize: 100 }).subscribe({
       next: (result) => {
         this.appointments = result.items;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 

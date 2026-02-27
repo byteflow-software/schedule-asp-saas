@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject , signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -71,8 +71,8 @@ import { AuthService } from '../../../core/services/auth.service';
               }
             </mat-form-field>
             <button mat-flat-button color="primary" class="full-width submit-btn" type="submit"
-              [disabled]="form.invalid || loading">
-              @if (loading) {
+              [disabled]="form.invalid || loading()">
+              @if (loading()) {
                 <mat-spinner diameter="20"></mat-spinner>
               } @else {
                 Criar Conta
@@ -142,7 +142,7 @@ export class RegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
-  loading = false;
+  loading = signal(false);
   hidePassword = true;
 
   form = this.fb.nonNullable.group({
@@ -154,7 +154,7 @@ export class RegisterComponent {
 
   onSubmit(): void {
     if (this.form.invalid) return;
-    this.loading = true;
+    this.loading.set(true);
     const formValues = this.form.getRawValue();
     this.authService.register(formValues).subscribe({
       next: () => {
@@ -169,7 +169,7 @@ export class RegisterComponent {
           },
         });
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 }

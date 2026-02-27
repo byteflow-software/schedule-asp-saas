@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -47,7 +47,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
         }
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else if (customers.length === 0) {
         <div class="empty-state">
@@ -158,7 +158,7 @@ export class CustomerListComponent implements OnInit {
   customers: CustomerDto[] = [];
   columns = ['fullName', 'email', 'phone', 'createdAt', 'actions'];
   search = '';
-  loading = true;
+  loading = signal(true);
   pageNumber = 1;
   totalPages = 1;
   totalCount = 0;
@@ -169,7 +169,7 @@ export class CustomerListComponent implements OnInit {
   ngOnInit(): void { this.load(); }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.customerService.getAll(this.search, this.pageNumber).subscribe({
       next: (result) => {
         this.customers = result.items;
@@ -177,9 +177,9 @@ export class CustomerListComponent implements OnInit {
         this.totalCount = result.totalCount;
         this.hasPreviousPage = result.hasPreviousPage;
         this.hasNextPage = result.hasNextPage;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 

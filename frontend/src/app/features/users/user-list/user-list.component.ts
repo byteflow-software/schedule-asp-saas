@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,7 +31,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
         </button>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else {
         <table mat-table [dataSource]="users" class="full-width">
@@ -111,16 +111,16 @@ export class UserListComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   users: UserDto[] = [];
   columns = ['fullName', 'role', 'isActive', 'createdAt', 'actions'];
-  loading = true;
+  loading = signal(true);
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.userService.getAll().subscribe({
-      next: (users) => { this.users = users; this.loading = false; },
+      next: (users) => { this.users = users; this.loading.set(false); },
       error: () => {
-        this.loading = false;
+        this.loading.set(false);
         this.snackBar.open('Erro ao carregar equipe.', 'OK', { duration: 3000 });
       },
     });

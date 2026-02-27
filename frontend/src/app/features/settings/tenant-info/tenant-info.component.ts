@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TenantService } from '../../../core/services/tenant.service';
@@ -14,7 +14,7 @@ import { TenantDto } from '../../../core/models/tenant.model';
         <mat-card-title>Informações da Empresa</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        @if (loading) {
+        @if (loading()) {
           <mat-spinner diameter="32"></mat-spinner>
         } @else if (tenant) {
           <div class="info-grid">
@@ -49,15 +49,15 @@ import { TenantDto } from '../../../core/models/tenant.model';
 export class TenantInfoComponent implements OnInit {
   private tenantService = inject(TenantService);
   tenant: TenantDto | null = null;
-  loading = true;
+  loading = signal(true);
 
   ngOnInit(): void {
     this.tenantService.getMyTenant().subscribe({
       next: (tenant) => {
         this.tenant = tenant;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 }

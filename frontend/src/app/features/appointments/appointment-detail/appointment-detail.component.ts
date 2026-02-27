@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,7 +24,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   ],
   template: `
     <div class="page-container">
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else if (appointment) {
         <div class="page-header">
@@ -197,7 +197,7 @@ export class AppointmentDetailComponent implements OnInit {
   private dialog = inject(MatDialog);
 
   appointment: AppointmentDto | null = null;
-  loading = true;
+  loading = signal(true);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -205,10 +205,10 @@ export class AppointmentDetailComponent implements OnInit {
   }
 
   loadAppointment(id: string): void {
-    this.loading = true;
+    this.loading.set(true);
     this.appointmentService.getById(id).subscribe({
-      next: (a) => { this.appointment = a; this.loading = false; },
-      error: () => { this.loading = false; this.router.navigate(['/appointments']); },
+      next: (a) => { this.appointment = a; this.loading.set(false); },
+      error: () => { this.loading.set(false); this.router.navigate(['/appointments']); },
     });
   }
 

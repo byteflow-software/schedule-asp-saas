@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject , signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -49,8 +49,8 @@ import { AuthService } from '../../../core/services/auth.service';
               </button>
             </mat-form-field>
             <button mat-flat-button color="primary" class="full-width submit-btn" type="submit"
-              [disabled]="form.invalid || loading">
-              @if (loading) {
+              [disabled]="form.invalid || loading()">
+              @if (loading()) {
                 <mat-spinner diameter="20"></mat-spinner>
               } @else {
                 Entrar
@@ -169,7 +169,7 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
-  loading = false;
+  loading = signal(false);
   hidePassword = true;
 
   form = this.fb.nonNullable.group({
@@ -179,11 +179,11 @@ export class LoginComponent {
 
   onSubmit(): void {
     if (this.form.invalid) return;
-    this.loading = true;
+    this.loading.set(true);
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => { this.router.navigate(['/dashboard']); },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         const msg = err.status === 401 ? 'Email ou senha incorretos.' : 'Erro ao fazer login. Tente novamente.';
         this.snackBar.open(msg, 'OK', { duration: 5000, panelClass: ['snackbar-error'] });
       },

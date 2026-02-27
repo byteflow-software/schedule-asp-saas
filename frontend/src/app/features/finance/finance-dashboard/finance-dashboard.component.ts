@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -95,7 +95,7 @@ export class PaymentMethodDialogComponent {
         </div>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else {
         <div class="stats-grid">
@@ -247,7 +247,7 @@ export class FinanceDashboardComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  loading = true;
+  loading = signal(true);
   transactions: TransactionDto[] = [];
   summary: TransactionSummaryDto = { totalRevenueCents: 0, totalPendingCents: 0, totalPaidCents: 0, count: 0 };
   columns = ['referenceNumber', 'customerName', 'description', 'amountInCents', 'status', 'createdAt', 'actions'];
@@ -271,7 +271,7 @@ export class FinanceDashboardComponent implements OnInit {
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     const from = this.fromDate ? `${this.fromDate}T00:00:00Z` : undefined;
     const to = this.toDate ? `${this.toDate}T23:59:59Z` : undefined;
 
@@ -293,9 +293,9 @@ export class FinanceDashboardComponent implements OnInit {
         this.totalCount = result.totalCount;
         this.hasPreviousPage = result.hasPreviousPage;
         this.hasNextPage = result.hasNextPage;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -76,7 +76,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
         </mat-form-field>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else if (vacancies.length === 0) {
         <div class="empty-state">
@@ -178,7 +178,7 @@ export class VacancyListComponent implements OnInit {
   users: UserDto[] = [];
   services: ServiceDto[] = [];
   columns = ['userName', 'serviceName', 'startTime', 'endTime', 'isBooked', 'actions'];
-  loading = true;
+  loading = signal(true);
 
   filterUserId = '';
   filterServiceId = '';
@@ -203,7 +203,7 @@ export class VacancyListComponent implements OnInit {
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     const filters: Record<string, string | undefined> = {};
     if (this.filterUserId) filters['userId'] = this.filterUserId;
     if (this.filterServiceId) filters['serviceId'] = this.filterServiceId;
@@ -213,9 +213,9 @@ export class VacancyListComponent implements OnInit {
     this.vacancyService.getAll(filters).subscribe({
       next: (vacancies) => {
         this.vacancies = vacancies;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit , signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,7 +31,7 @@ import { ServiceFormComponent } from '../service-form/service-form.component';
         </button>
       </div>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else if (services.length === 0) {
         <div class="empty-state">
@@ -122,18 +122,18 @@ export class ServiceListComponent implements OnInit {
 
   services: ServiceDto[] = [];
   columns = ['name', 'durationMinutes', 'priceInCents', 'isActive', 'actions'];
-  loading = true;
+  loading = signal(true);
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.serviceService.getAll().subscribe({
       next: (result) => {
         this.services = result;
-        this.loading = false;
+        this.loading.set(false);
       },
-      error: () => { this.loading = false; },
+      error: () => { this.loading.set(false); },
     });
   }
 
