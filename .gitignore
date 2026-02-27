@@ -1,0 +1,60 @@
+# Claude
+.claude/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild[Ll]og.*
+*.nupkg
+*.snupkg
+
+# NuGet
+**/packages/
+*.nuget.props
+*.nuget.targets
+
+# Angular / Node
+**/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.sass-cache/
+frontend/tmp/
+frontend/.vscode/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment / Secrets
+*.env
+appsettings.*.local.json
+
+# Docker
+docker/postgres_data/
+
+# Logs
+*.log
+logs/
+
+# Test results
+**/TestResults/
+**/coverage/
