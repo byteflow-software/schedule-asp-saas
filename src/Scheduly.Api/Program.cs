@@ -37,7 +37,9 @@ if (!isTesting)
 
 // CORS
 var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?
-    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(o => o.TrimEnd('/'))
+    .ToArray();
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
