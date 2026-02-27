@@ -30,14 +30,21 @@ if (!isTesting)
     healthChecksBuilder.AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 // CORS
+var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+    {
+        if (allowedOrigins?.Length > 0)
+            policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        else
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    }));
 
 var app = builder.Build();
 
-// Auto-migrate in Development
-if (app.Environment.IsDevelopment())
+// Auto-migrate (all environments — Railway/production has no direct DB access)
+if (!isTesting)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -59,10 +66,12 @@ app.UseMiddleware<TenantMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
-// Hangfire (skip in Testing environment)
-if (!app.Environment.IsEnvironment("Testing"))
+// Hangfire
+if (!isTesting)
 {
-    app.UseHangfireDashboard("/hangfire");
+    // Dashboard only in Development (no auth configured)
+    if (app.Environment.IsDevelopment())
+        app.UseHangfireDashboard("/hangfire");
 
     RecurringJob.AddOrUpdate<AppointmentReminderJob>(
         "appointment-reminders",
