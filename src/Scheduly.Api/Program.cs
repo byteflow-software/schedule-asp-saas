@@ -79,12 +79,15 @@ if (!isTesting)
     if (app.Environment.IsDevelopment())
         app.UseHangfireDashboard("/hangfire");
 
-    RecurringJob.AddOrUpdate<AppointmentReminderJob>(
+    // Use service-based API instead of static RecurringJob (requires initialized storage)
+    var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+
+    jobManager.AddOrUpdate<AppointmentReminderJob>(
         "appointment-reminders",
         job => job.ExecuteAsync(),
         "*/15 * * * *"); // Every 15 minutes
 
-    RecurringJob.AddOrUpdate<RefreshTokenCleanupJob>(
+    jobManager.AddOrUpdate<RefreshTokenCleanupJob>(
         "refresh-token-cleanup",
         job => job.ExecuteAsync(),
         Cron.Daily);
