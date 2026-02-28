@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatRadioModule } from '@angular/material/radio';
+import { Clipboard } from '@angular/cdk/clipboard';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { CustomerService } from '../../../core/services/customer.service';
 import { UserService } from '../../../core/services/user.service';
@@ -19,6 +20,7 @@ import { CustomerDto } from '../../../core/models/customer.model';
 import { UserDto } from '../../../core/models/user.model';
 import { ServiceDto } from '../../../core/models/service.model';
 import { VacancyDto } from '../../../core/models/vacancy.model';
+import { AppointmentDto } from '../../../core/models/appointment.model';
 import { CurrencyCentsPipe } from '../../../shared/pipes/currency-cents.pipe';
 import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
 
@@ -31,196 +33,249 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
     MatRadioModule, CurrencyCentsPipe, DateFormatPipe,
   ],
   template: `
-    <div class="dialog-header">
-      <h2 mat-dialog-title>Novo Agendamento</h2>
-      <p class="dialog-subtitle">Siga os passos para criar um agendamento</p>
-    </div>
-    <mat-dialog-content>
-      <mat-stepper linear #stepper>
-        <!-- Step 1: Cliente -->
-        <mat-step [stepControl]="clientForm" label="Cliente">
-          <form [formGroup]="clientForm" class="step-content">
-            <div class="step-description">Selecione um cliente existente ou cadastre um novo</div>
-            <mat-form-field class="full-width" appearance="outline">
-              <mat-label>Cliente</mat-label>
-              <mat-icon matPrefix>person</mat-icon>
-              <mat-select formControlName="customerId">
-                @for (c of customers; track c.id) {
-                  <mat-option [value]="c.id">{{ c.fullName }} — {{ c.email }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+    @if (createdAppointment()) {
+      <!-- Success Screen -->
+      <div class="success-screen">
+        <div class="success-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h2>Agendamento Criado!</h2>
+        <p class="success-subtitle">A cobrança foi gerada com sucesso.</p>
 
-            @if (!showNewCustomer) {
-              <button mat-stroked-button type="button" (click)="showNewCustomer = true" class="new-btn">
-                <mat-icon>person_add</mat-icon> Novo Cliente
-              </button>
-            } @else {
-              <div class="new-customer-form">
-                <h4>Cadastrar Novo Cliente</h4>
-                <mat-form-field class="full-width" appearance="outline">
-                  <mat-label>Nome Completo</mat-label>
-                  <input matInput formControlName="newCustomerName" />
-                </mat-form-field>
-                <mat-form-field class="full-width" appearance="outline">
-                  <mat-label>CPF/CNPJ</mat-label>
-                  <input matInput formControlName="newCustomerCpfCnpj" />
-                </mat-form-field>
-                <mat-form-field class="full-width" appearance="outline">
-                  <mat-label>Email</mat-label>
-                  <input matInput type="email" formControlName="newCustomerEmail" />
-                </mat-form-field>
-                <mat-form-field class="full-width" appearance="outline">
-                  <mat-label>Telefone</mat-label>
-                  <input matInput formControlName="newCustomerPhone" />
-                </mat-form-field>
-                <div class="form-row">
-                  <button mat-stroked-button type="button" (click)="showNewCustomer = false">Cancelar</button>
-                  <button mat-flat-button color="primary" type="button" [disabled]="creatingCustomer"
-                    (click)="createCustomer()">
-                    {{ creatingCustomer ? 'Salvando...' : 'Cadastrar' }}
-                  </button>
-                </div>
-              </div>
-            }
-
-            <div class="step-actions">
-              <span></span>
-              <button mat-flat-button color="primary" matStepperNext [disabled]="clientForm.get('customerId')?.invalid">
-                Próximo <mat-icon>arrow_forward</mat-icon>
-              </button>
+        <div class="success-summary">
+          <div class="summary-row">
+            <span class="summary-label">Serviço</span>
+            <span class="summary-value">{{ createdAppointment()!.serviceName }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Cliente</span>
+            <span class="summary-value">{{ createdAppointment()!.customerName }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Horário</span>
+            <span class="summary-value">{{ createdAppointment()!.startTime | dateFormat:'full' }}</span>
+          </div>
+          <div class="summary-row highlight">
+            <span class="summary-label">Valor</span>
+            <span class="summary-value">{{ createdAppointment()!.priceInCents | currencyCents }}</span>
+          </div>
+          @if (createdAppointment()!.transaction?.referenceNumber) {
+            <div class="summary-row">
+              <span class="summary-label">Referência</span>
+              <span class="summary-value mono">{{ createdAppointment()!.transaction!.referenceNumber }}</span>
             </div>
-          </form>
-        </mat-step>
+          }
+        </div>
 
-        <!-- Step 2: Serviço + Profissional -->
-        <mat-step [stepControl]="serviceForm" label="Serviço">
-          <form [formGroup]="serviceForm" class="step-content">
-            <div class="step-description">Escolha o serviço e o profissional</div>
-            <div class="service-cards">
-              @for (s of services; track s.id) {
-                <div class="service-card" [class.selected]="serviceForm.get('serviceId')?.value === s.id"
-                  (click)="selectService(s)">
-                  <div class="service-card-name">{{ s.name }}</div>
-                  <div class="service-card-meta">
-                    <span>{{ s.durationMinutes }} min</span>
-                    <span class="service-card-price">{{ s.priceInCents | currencyCents }}</span>
-                  </div>
-                  @if (s.description) {
-                    <div class="service-card-desc">{{ s.description }}</div>
-                  }
-                </div>
-              }
-            </div>
+        @if (createdAppointment()!.transaction?.invoiceUrl) {
+          <div class="payment-actions">
+            <a mat-flat-button color="primary" class="payment-btn"
+              [href]="createdAppointment()!.transaction!.invoiceUrl" target="_blank">
+              <mat-icon>open_in_new</mat-icon> Abrir Link de Pagamento
+            </a>
+            <button mat-stroked-button class="copy-btn" (click)="copyPaymentLink()">
+              <mat-icon>content_copy</mat-icon> Copiar Link
+            </button>
+          </div>
+        }
 
-            @if (serviceForm.get('serviceId')?.value) {
+        <button mat-button class="close-btn" (click)="dialogRef.close(true)">
+          Fechar
+        </button>
+      </div>
+    } @else {
+      <!-- Stepper Form -->
+      <div class="dialog-header">
+        <h2 mat-dialog-title>Novo Agendamento</h2>
+        <p class="dialog-subtitle">Siga os passos para criar um agendamento</p>
+      </div>
+      <mat-dialog-content>
+        <mat-stepper linear #stepper>
+          <!-- Step 1: Cliente -->
+          <mat-step [stepControl]="clientForm" label="Cliente">
+            <form [formGroup]="clientForm" class="step-content">
+              <div class="step-description">Selecione um cliente existente ou cadastre um novo</div>
               <mat-form-field class="full-width" appearance="outline">
-                <mat-label>Profissional</mat-label>
-                <mat-icon matPrefix>badge</mat-icon>
-                <mat-select formControlName="userId">
-                  @for (u of users; track u.id) {
-                    <mat-option [value]="u.id">{{ u.fullName }}</mat-option>
+                <mat-label>Cliente</mat-label>
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-select formControlName="customerId">
+                  @for (c of customers; track c.id) {
+                    <mat-option [value]="c.id">{{ c.fullName }} — {{ c.email }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
-            }
 
-            <div class="step-actions">
-              <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
-              <button mat-flat-button color="primary" matStepperNext
-                [disabled]="serviceForm.invalid" (click)="loadVacancies()">
-                Próximo <mat-icon>arrow_forward</mat-icon>
-              </button>
-            </div>
-          </form>
-        </mat-step>
+              @if (!showNewCustomer) {
+                <button mat-stroked-button type="button" (click)="showNewCustomer = true" class="new-btn">
+                  <mat-icon>person_add</mat-icon> Novo Cliente
+                </button>
+              } @else {
+                <div class="new-customer-form">
+                  <h4>Cadastrar Novo Cliente</h4>
+                  <mat-form-field class="full-width" appearance="outline">
+                    <mat-label>Nome Completo</mat-label>
+                    <input matInput formControlName="newCustomerName" />
+                  </mat-form-field>
+                  <mat-form-field class="full-width" appearance="outline">
+                    <mat-label>CPF/CNPJ</mat-label>
+                    <input matInput formControlName="newCustomerCpfCnpj" />
+                  </mat-form-field>
+                  <mat-form-field class="full-width" appearance="outline">
+                    <mat-label>Email</mat-label>
+                    <input matInput type="email" formControlName="newCustomerEmail" />
+                  </mat-form-field>
+                  <mat-form-field class="full-width" appearance="outline">
+                    <mat-label>Telefone</mat-label>
+                    <input matInput formControlName="newCustomerPhone" />
+                  </mat-form-field>
+                  <div class="form-row">
+                    <button mat-stroked-button type="button" (click)="showNewCustomer = false">Cancelar</button>
+                    <button mat-flat-button color="primary" type="button" [disabled]="creatingCustomer"
+                      (click)="createCustomer()">
+                      {{ creatingCustomer ? 'Salvando...' : 'Cadastrar' }}
+                    </button>
+                  </div>
+                </div>
+              }
 
-        <!-- Step 3: Horário -->
-        <mat-step [stepControl]="timeForm" label="Horário">
-          <form [formGroup]="timeForm" class="step-content">
-            <div class="step-description">Selecione uma vaga disponível ou informe o horário manualmente</div>
+              <div class="step-actions">
+                <span></span>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="clientForm.get('customerId')?.invalid">
+                  Próximo <mat-icon>arrow_forward</mat-icon>
+                </button>
+              </div>
+            </form>
+          </mat-step>
 
-            @if (availableVacancies.length > 0) {
-              <div class="vacancy-section">
-                <h4>Vagas Disponíveis</h4>
-                <div class="vacancy-cards">
-                  @for (v of availableVacancies; track v.id) {
-                    <div class="vacancy-card" [class.selected]="selectedVacancyId === v.id"
-                      (click)="selectVacancy(v)">
-                      <mat-icon>schedule</mat-icon>
-                      <span>{{ v.startTime | dateFormat }} — {{ v.endTime | dateFormat:'time' }}</span>
+          <!-- Step 2: Serviço + Profissional -->
+          <mat-step [stepControl]="serviceForm" label="Serviço">
+            <form [formGroup]="serviceForm" class="step-content">
+              <div class="step-description">Escolha o serviço e o profissional</div>
+              <div class="service-cards">
+                @for (s of services; track s.id) {
+                  <div class="service-card" [class.selected]="serviceForm.get('serviceId')?.value === s.id"
+                    (click)="selectService(s)">
+                    <div class="service-card-name">{{ s.name }}</div>
+                    <div class="service-card-meta">
+                      <span>{{ s.durationMinutes }} min</span>
+                      <span class="service-card-price">{{ s.priceInCents | currencyCents }}</span>
                     </div>
-                  }
+                    @if (s.description) {
+                      <div class="service-card-desc">{{ s.description }}</div>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (serviceForm.get('serviceId')?.value) {
+                <mat-form-field class="full-width" appearance="outline">
+                  <mat-label>Profissional</mat-label>
+                  <mat-icon matPrefix>badge</mat-icon>
+                  <mat-select formControlName="userId">
+                    @for (u of users; track u.id) {
+                      <mat-option [value]="u.id">{{ u.fullName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+
+              <div class="step-actions">
+                <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
+                <button mat-flat-button color="primary" matStepperNext
+                  [disabled]="serviceForm.invalid" (click)="loadVacancies()">
+                  Próximo <mat-icon>arrow_forward</mat-icon>
+                </button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- Step 3: Horário -->
+          <mat-step [stepControl]="timeForm" label="Horário">
+            <form [formGroup]="timeForm" class="step-content">
+              <div class="step-description">Selecione uma vaga disponível ou informe o horário manualmente</div>
+
+              @if (availableVacancies.length > 0) {
+                <div class="vacancy-section">
+                  <h4>Vagas Disponíveis</h4>
+                  <div class="vacancy-cards">
+                    @for (v of availableVacancies; track v.id) {
+                      <div class="vacancy-card" [class.selected]="selectedVacancyId === v.id"
+                        (click)="selectVacancy(v)">
+                        <mat-icon>schedule</mat-icon>
+                        <span>{{ v.startTime | dateFormat }} — {{ v.endTime | dateFormat:'time' }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="divider-text">ou informe manualmente</div>
+              }
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Data e Hora Início</mat-label>
+                  <input matInput type="datetime-local" formControlName="startTime"
+                    (change)="onStartTimeChange()" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Data e Hora Fim</mat-label>
+                  <input matInput type="datetime-local" formControlName="endTime" />
+                </mat-form-field>
+              </div>
+
+              <div class="step-actions">
+                <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="timeForm.invalid">
+                  Próximo <mat-icon>arrow_forward</mat-icon>
+                </button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- Step 4: Confirmação -->
+          <mat-step label="Confirmação">
+            <div class="step-content">
+              <div class="step-description">Revise os dados e confirme o agendamento</div>
+
+              <div class="summary-card">
+                <div class="summary-row">
+                  <span class="summary-label">Cliente</span>
+                  <span class="summary-value">{{ getSelectedCustomerName() }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Serviço</span>
+                  <span class="summary-value">{{ getSelectedServiceName() }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Profissional</span>
+                  <span class="summary-value">{{ getSelectedUserName() }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Horário</span>
+                  <span class="summary-value">{{ timeForm.get('startTime')?.value }} — {{ timeForm.get('endTime')?.value }}</span>
+                </div>
+                <div class="summary-row highlight">
+                  <span class="summary-label">Valor</span>
+                  <span class="summary-value">{{ selectedService?.priceInCents | currencyCents }}</span>
                 </div>
               </div>
-              <div class="divider-text">ou informe manualmente</div>
-            }
 
-            <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>Data e Hora Início</mat-label>
-                <input matInput type="datetime-local" formControlName="startTime"
-                  (change)="onStartTimeChange()" />
+              <mat-form-field class="full-width" appearance="outline">
+                <mat-label>Observações</mat-label>
+                <textarea matInput [(ngModel)]="notes" [ngModelOptions]="{standalone: true}" rows="2" placeholder="Notas opcionais..."></textarea>
               </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Data e Hora Fim</mat-label>
-                <input matInput type="datetime-local" formControlName="endTime" />
-              </mat-form-field>
-            </div>
 
-            <div class="step-actions">
-              <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
-              <button mat-flat-button color="primary" matStepperNext [disabled]="timeForm.invalid">
-                Próximo <mat-icon>arrow_forward</mat-icon>
-              </button>
-            </div>
-          </form>
-        </mat-step>
-
-        <!-- Step 4: Confirmação -->
-        <mat-step label="Confirmação">
-          <div class="step-content">
-            <div class="step-description">Revise os dados e confirme o agendamento</div>
-
-            <div class="summary-card">
-              <div class="summary-row">
-                <span class="summary-label">Cliente</span>
-                <span class="summary-value">{{ getSelectedCustomerName() }}</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Serviço</span>
-                <span class="summary-value">{{ getSelectedServiceName() }}</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Profissional</span>
-                <span class="summary-value">{{ getSelectedUserName() }}</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Horário</span>
-                <span class="summary-value">{{ timeForm.get('startTime')?.value }} — {{ timeForm.get('endTime')?.value }}</span>
-              </div>
-              <div class="summary-row highlight">
-                <span class="summary-label">Valor</span>
-                <span class="summary-value">{{ selectedService?.priceInCents | currencyCents }}</span>
+              <div class="step-actions">
+                <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
+                <button mat-flat-button color="primary" [disabled]="saving" (click)="save()">
+                  <mat-icon>check</mat-icon>
+                  {{ saving ? 'Criando...' : 'Criar Agendamento' }}
+                </button>
               </div>
             </div>
-
-            <mat-form-field class="full-width" appearance="outline">
-              <mat-label>Observações</mat-label>
-              <textarea matInput [(ngModel)]="notes" [ngModelOptions]="{standalone: true}" rows="2" placeholder="Notas opcionais..."></textarea>
-            </mat-form-field>
-
-            <div class="step-actions">
-              <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
-              <button mat-flat-button color="primary" [disabled]="saving" (click)="save()">
-                <mat-icon>check</mat-icon>
-                {{ saving ? 'Criando...' : 'Criar Agendamento' }}
-              </button>
-            </div>
-          </div>
-        </mat-step>
-      </mat-stepper>
-    </mat-dialog-content>
+          </mat-step>
+        </mat-stepper>
+      </mat-dialog-content>
+    }
   `,
   styles: [`
     .dialog-header { padding: 24px 24px 0; }
@@ -265,16 +320,38 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
       &::before { left: 0; } &::after { right: 0; }
     }
 
-    .summary-card {
+    .summary-card, .success-summary {
       background: #F9FAFB; border-radius: 12px; padding: 16px; border: 1px solid #E5E7EB;
       display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;
     }
     .summary-row { display: flex; justify-content: space-between; font-size: 14px; }
     .summary-label { color: #6B7280; }
     .summary-value { font-weight: 500; color: #111827; }
+    .mono { font-family: monospace; letter-spacing: 0.5px; }
     .summary-row.highlight { padding-top: 12px; border-top: 1px solid #E5E7EB;
       .summary-value { font-size: 18px; font-weight: 700; color: #059669; }
     }
+
+    .success-screen {
+      padding: 32px; text-align: center; min-width: 480px;
+    }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #D1FAE5; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      mat-icon { color: #059669; font-size: 40px; width: 40px; height: 40px; }
+    }
+    .success-subtitle { font-size: 14px; color: #6B7280; margin: 8px 0 24px; }
+    .success-summary { text-align: left; }
+    .payment-actions {
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;
+    }
+    .payment-btn {
+      height: 48px; font-size: 15px; width: 100%;
+      text-decoration: none; display: flex; align-items: center; justify-content: center;
+    }
+    .copy-btn { width: 100%; }
+    .close-btn { width: 100%; color: #6B7280; }
   `],
 })
 export class AppointmentFormComponent implements OnInit {
@@ -287,6 +364,7 @@ export class AppointmentFormComponent implements OnInit {
   private vacancyService = inject(VacancyService);
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
+  private clipboard = inject(Clipboard);
 
   customers: CustomerDto[] = [];
   users: UserDto[] = [];
@@ -298,6 +376,8 @@ export class AppointmentFormComponent implements OnInit {
   creatingCustomer = false;
   saving = false;
   notes = '';
+
+  createdAppointment = signal<AppointmentDto | null>(null);
 
   clientForm = this.fb.nonNullable.group({
     customerId: ['', Validators.required],
@@ -430,13 +510,19 @@ export class AppointmentFormComponent implements OnInit {
       endTime: new Date(endVal).toISOString(),
       notes: this.notes || undefined,
     }).subscribe({
-      next: () => {
-        this.snackBar.open('Agendamento criado com sucesso! Cobrança enviada por email.', 'OK', {
-          duration: 5000, panelClass: ['snackbar-success']
-        });
-        this.dialogRef.close(true);
+      next: (result) => {
+        this.createdAppointment.set(result);
+        this.saving = false;
       },
       error: () => { this.saving = false; },
     });
+  }
+
+  copyPaymentLink(): void {
+    const url = this.createdAppointment()?.transaction?.invoiceUrl;
+    if (url) {
+      this.clipboard.copy(url);
+      this.snackBar.open('Link copiado!', 'OK', { duration: 2000, panelClass: ['snackbar-success'] });
+    }
   }
 }
