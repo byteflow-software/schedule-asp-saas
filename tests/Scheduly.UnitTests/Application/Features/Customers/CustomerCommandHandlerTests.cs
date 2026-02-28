@@ -43,7 +43,7 @@ public class CustomerCommandHandlerTests : IDisposable
     public async Task CreateCustomer_ValidCommand_ReturnsDto()
     {
         var handler = new CreateCustomerCommandHandler(_context, _tenantService, _dateTimeProvider);
-        var command = new CreateCustomerCommand("Jane Doe", "jane@example.com", "+5511999999999");
+        var command = new CreateCustomerCommand("Jane Doe", "jane@example.com", "+5511999999999", "12345678901");
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -57,7 +57,7 @@ public class CustomerCommandHandlerTests : IDisposable
     public async Task CreateCustomer_EmailIsLowercased()
     {
         var handler = new CreateCustomerCommandHandler(_context, _tenantService, _dateTimeProvider);
-        var command = new CreateCustomerCommand("Jane", "JANE@EXAMPLE.COM", null);
+        var command = new CreateCustomerCommand("Jane", "JANE@EXAMPLE.COM", null, "12345678901");
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -68,7 +68,7 @@ public class CustomerCommandHandlerTests : IDisposable
     public async Task CreateCustomer_AssignsTenantId()
     {
         var handler = new CreateCustomerCommandHandler(_context, _tenantService, _dateTimeProvider);
-        await handler.Handle(new CreateCustomerCommand("Jane", "j@ex.com", null), CancellationToken.None);
+        await handler.Handle(new CreateCustomerCommand("Jane", "j@ex.com", null, "12345678901"), CancellationToken.None);
 
         var saved = await _context.Customers.IgnoreQueryFilters().FirstAsync();
         saved.TenantId.Should().Be(_tenantId);
@@ -82,10 +82,10 @@ public class CustomerCommandHandlerTests : IDisposable
     {
         var createHandler = new CreateCustomerCommandHandler(_context, _tenantService, _dateTimeProvider);
         var created = await createHandler.Handle(
-            new CreateCustomerCommand("Old Name", "old@email.com", null), CancellationToken.None);
+            new CreateCustomerCommand("Old Name", "old@email.com", null, "12345678901"), CancellationToken.None);
 
         var updateHandler = new UpdateCustomerCommandHandler(_context, _dateTimeProvider);
-        var updateCmd = new UpdateCustomerCommand(created.Id, "New Name", "new@email.com", "+1");
+        var updateCmd = new UpdateCustomerCommand(created.Id, "New Name", "new@email.com", "+1", "12345678901");
 
         var result = await updateHandler.Handle(updateCmd, CancellationToken.None);
 
@@ -100,7 +100,7 @@ public class CustomerCommandHandlerTests : IDisposable
         var handler = new UpdateCustomerCommandHandler(_context, _dateTimeProvider);
 
         var act = () => handler.Handle(
-            new UpdateCustomerCommand(Guid.NewGuid(), "Name", "e@e.com", null),
+            new UpdateCustomerCommand(Guid.NewGuid(), "Name", "e@e.com", null, "12345678901"),
             CancellationToken.None);
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
@@ -113,7 +113,7 @@ public class CustomerCommandHandlerTests : IDisposable
     {
         var createHandler = new CreateCustomerCommandHandler(_context, _tenantService, _dateTimeProvider);
         var created = await createHandler.Handle(
-            new CreateCustomerCommand("To Delete", "del@email.com", null), CancellationToken.None);
+            new CreateCustomerCommand("To Delete", "del@email.com", null, "12345678901"), CancellationToken.None);
 
         var deleteHandler = new DeleteCustomerCommandHandler(_context, _dateTimeProvider);
         await deleteHandler.Handle(new DeleteCustomerCommand(created.Id), CancellationToken.None);
