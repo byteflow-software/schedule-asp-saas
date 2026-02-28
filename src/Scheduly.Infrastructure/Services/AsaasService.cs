@@ -14,6 +14,9 @@ public class AsaasService : IAsaasService
     private readonly AsaasSettings _settings;
     private readonly ILogger<AsaasService> _logger;
 
+    private const string ProductionBaseUrl = "https://api.asaas.com/v3/";
+    private const string SandboxBaseUrl = "https://sandbox.asaas.com/api/v3/";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -25,14 +28,20 @@ public class AsaasService : IAsaasService
         _httpClient = httpClient;
         _settings = settings.Value;
         _logger = logger;
-        _httpClient.BaseAddress = new Uri(_settings.BaseUrl.TrimEnd('/') + "/");
+    }
+
+    private static string GetBaseUrl(string apiKey)
+    {
+        return apiKey.Contains("_hmlg_", StringComparison.OrdinalIgnoreCase)
+            ? SandboxBaseUrl
+            : ProductionBaseUrl;
     }
 
     public async Task<AsaasCustomerResponse> CreateOrUpdateCustomerAsync(
         string apiKey, string name, string cpfCnpj, string email, string? phone,
         string externalReference, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "customers");
+        using var request = new HttpRequestMessage(HttpMethod.Post, GetBaseUrl(apiKey) + "customers");
         request.Headers.Add("access_token", apiKey);
         request.Content = JsonContent.Create(new
         {
@@ -63,7 +72,7 @@ public class AsaasService : IAsaasService
         string apiKey, string asaasCustomerId, int amountInCents,
         string description, string externalReference, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "payments");
+        using var request = new HttpRequestMessage(HttpMethod.Post, GetBaseUrl(apiKey) + "payments");
         request.Headers.Add("access_token", apiKey);
 
         var payload = new Dictionary<string, object>
@@ -113,7 +122,7 @@ public class AsaasService : IAsaasService
 
     public async Task<AsaasAccountResponse> ValidateApiKeyAsync(string apiKey, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "myAccount");
+        using var request = new HttpRequestMessage(HttpMethod.Get, GetBaseUrl(apiKey) + "myAccount");
         request.Headers.Add("access_token", apiKey);
 
         var response = await _httpClient.SendAsync(request, ct);
