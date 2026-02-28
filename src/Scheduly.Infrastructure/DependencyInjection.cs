@@ -53,6 +53,10 @@ public static class DependencyInjection
         services.Configure<EmailSettings>(configuration.GetSection("Email"));
         services.AddScoped<IEmailService, SmtpEmailService>();
 
+        // Asaas
+        services.Configure<AsaasSettings>(configuration.GetSection(AsaasSettings.SectionName));
+        services.AddHttpClient<IAsaasService, AsaasService>();
+
         // Jobs
         services.AddScoped<AppointmentReminderJob>();
         services.AddScoped<RefreshTokenCleanupJob>();
