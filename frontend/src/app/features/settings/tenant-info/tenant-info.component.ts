@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
 import { TenantService } from '../../../core/services/tenant.service';
 import { TenantDto } from '../../../core/models/tenant.model';
 
@@ -15,37 +16,68 @@ import { TenantDto } from '../../../core/models/tenant.model';
   standalone: true,
   imports: [
     ReactiveFormsModule, FormsModule, MatCardModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatDividerModule,
   ],
   template: `
     @if (loading()) {
       <div class="loading"><mat-spinner></mat-spinner></div>
     } @else {
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Informações da Empresa</mat-card-title>
-          <mat-card-subtitle>Dados cadastrais da sua empresa</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <form [formGroup]="form" class="form-grid">
+      <form [formGroup]="form">
+        <!-- Dados da Empresa -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon business">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div>
+              <h3>Dados da Empresa</h3>
+              <p>Informações básicas do seu negócio</p>
+            </div>
+          </div>
+          <div class="form-grid">
             <mat-form-field appearance="outline">
               <mat-label>Nome da Empresa</mat-label>
+              <mat-icon matPrefix>store</mat-icon>
               <input matInput formControlName="name" />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>CPF/CNPJ</mat-label>
+              <mat-icon matPrefix>badge</mat-icon>
               <input matInput formControlName="cpfCnpj" />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Email</mat-label>
+              <mat-icon matPrefix>email</mat-icon>
               <input matInput formControlName="email" type="email" />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Telefone</mat-label>
+              <mat-icon matPrefix>phone</mat-icon>
               <input matInput formControlName="phone" />
             </mat-form-field>
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="span-2">
+              <mat-label>URL do Logo</mat-label>
+              <mat-icon matPrefix>image</mat-icon>
+              <input matInput formControlName="logoUrl" />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Endereço -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon location">
+              <mat-icon>location_on</mat-icon>
+            </div>
+            <div>
+              <h3>Endereço</h3>
+              <p>Localização do seu estabelecimento</p>
+            </div>
+          </div>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="span-2">
               <mat-label>Endereço</mat-label>
+              <mat-icon matPrefix>home</mat-icon>
               <input matInput formControlName="address" />
             </mat-form-field>
             <mat-form-field appearance="outline">
@@ -72,77 +104,247 @@ import { TenantDto } from '../../../core/models/tenant.model';
               <mat-label>CEP</mat-label>
               <input matInput formControlName="postalCode" />
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>URL do Logo</mat-label>
-              <input matInput formControlName="logoUrl" />
-            </mat-form-field>
-          </form>
-          <div class="actions">
-            <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="saveInfo()">
-              <mat-icon>save</mat-icon> {{ saving() ? 'Salvando...' : 'Salvar' }}
-            </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
 
-      <mat-card class="asaas-card">
-        <mat-card-header>
-          <mat-card-title>Integração Asaas</mat-card-title>
-          <mat-card-subtitle>Configure a integração de pagamentos com o Asaas</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="asaas-status">
+        <div class="save-bar">
+          <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="saveInfo()">
+            @if (saving()) {
+              <mat-spinner diameter="20"></mat-spinner> Salvando...
+            } @else {
+              <mat-icon>save</mat-icon> Salvar Alterações
+            }
+          </button>
+        </div>
+      </form>
+
+      <!-- Integração Asaas -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon payment">
+            <mat-icon>account_balance</mat-icon>
+          </div>
+          <div>
+            <h3>Integração de Pagamentos</h3>
+            <p>Gerencie sua conexão com o Asaas</p>
+          </div>
+          <div class="header-badge">
             @if (tenant()?.hasAsaasIntegration) {
-              <div class="status-badge success">
-                <mat-icon>check_circle</mat-icon> Integrado
-                @if (tenant()?.asaasWalletId) {
-                  <span class="wallet-id">WalletId: {{ tenant()!.asaasWalletId }}</span>
-                }
+              <div class="integration-badge connected">
+                <mat-icon>check_circle</mat-icon> Conectado
               </div>
             } @else {
-              <div class="status-badge warning">
-                <mat-icon>warning</mat-icon> Não configurado
+              <div class="integration-badge disconnected">
+                <mat-icon>error_outline</mat-icon> Desconectado
               </div>
             }
           </div>
+        </div>
 
-          <div class="asaas-form">
-            <mat-form-field appearance="outline" class="full-width">
+        @if (tenant()?.hasAsaasIntegration) {
+          <div class="asaas-info-grid">
+            <div class="info-item">
+              <span class="info-label">Status</span>
+              <span class="info-value connected">
+                <mat-icon>verified</mat-icon> Ativo
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Wallet ID</span>
+              <span class="info-value mono">{{ tenant()?.asaasWalletId || '—' }}</span>
+            </div>
+          </div>
+        }
+
+        <mat-divider></mat-divider>
+
+        <div class="token-section">
+          <p class="token-description">
+            @if (tenant()?.hasAsaasIntegration) {
+              Para alterar o token, insira a nova chave abaixo e valide.
+            } @else {
+              Insira seu token de API do Asaas para habilitar cobranças automáticas.
+            }
+          </p>
+          <div class="token-form">
+            <mat-form-field appearance="outline" class="token-field">
               <mat-label>Token Asaas (API Key)</mat-label>
-              <input matInput [type]="showToken() ? 'text' : 'password'" [(ngModel)]="asaasApiKey" [ngModelOptions]="{standalone: true}" />
+              <mat-icon matPrefix>key</mat-icon>
+              <input matInput [type]="showToken() ? 'text' : 'password'" [(ngModel)]="asaasApiKey"
+                [ngModelOptions]="{standalone: true}" placeholder="$aact_..." />
               <button mat-icon-button matSuffix (click)="showToken.set(!showToken())">
                 <mat-icon>{{ showToken() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
             </mat-form-field>
-            <button mat-flat-button color="primary" [disabled]="!asaasApiKey || validatingAsaas()" (click)="validateAsaas()">
-              <mat-icon>verified</mat-icon> {{ validatingAsaas() ? 'Validando...' : 'Validar Token' }}
+            <button mat-flat-button color="primary" class="validate-btn"
+              [disabled]="!asaasApiKey || validatingAsaas()" (click)="validateAsaas()">
+              @if (validatingAsaas()) {
+                <mat-spinner diameter="20"></mat-spinner> Validando...
+              } @else {
+                <mat-icon>verified</mat-icon> Validar Token
+              }
             </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     }
   `,
   styles: [`
-    .loading { display: flex; justify-content: center; padding: 48px; }
-    mat-card { margin-bottom: 24px; }
+    :host { display: block; }
+
+    .section-card {
+      background: white;
+      border-radius: var(--radius-lg, 12px);
+      border: 1px solid var(--gray-200, #E5E7EB);
+      box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-900, #111827);
+      }
+      p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--gray-500, #6B7280);
+      }
+    }
+
+    .section-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      mat-icon { color: white; font-size: 22px; width: 22px; height: 22px; }
+
+      &.business { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+      &.location { background: linear-gradient(135deg, #0EA5E9, #06B6D4); }
+      &.payment { background: linear-gradient(135deg, #F59E0B, #F97316); }
+    }
+
+    .header-badge { margin-left: auto; }
+
+    .integration-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+      &.connected { background: #D1FAE5; color: #065F46; }
+      &.disconnected { background: #FEE2E2; color: #991B1B; }
+    }
+
     .form-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; padding: 16px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
     }
-    .actions { display: flex; justify-content: flex-end; padding-top: 8px; }
-    .asaas-card { margin-top: 24px; }
-    .asaas-status { margin: 16px 0; }
-    .status-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 16px; border-radius: 8px; font-weight: 500;
-      &.success { background: #D1FAE5; color: #065F46; }
-      &.warning { background: #FEF3C7; color: #92400E; }
-      .wallet-id { font-size: 12px; opacity: 0.8; margin-left: 8px; }
+
+    .span-2 { grid-column: span 2; }
+
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+
+      button {
+        height: 44px;
+        font-size: 14px;
+        padding: 0 24px;
+        mat-spinner { display: inline-block; margin-right: 8px; }
+      }
     }
-    .asaas-form {
-      display: flex; align-items: flex-start; gap: 16px; margin-top: 16px;
-      mat-form-field { flex: 1; }
+
+    .asaas-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
     }
-    .full-width { width: 100%; }
+
+    .info-item {
+      background: var(--gray-50, #F9FAFB);
+      border-radius: var(--radius, 8px);
+      padding: 14px 16px;
+      border: 1px solid var(--gray-100, #F3F4F6);
+
+      .info-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-400, #9CA3AF);
+        margin-bottom: 6px;
+      }
+
+      .info-value {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-800, #1F2937);
+
+        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+        &.connected { color: #059669; }
+        &.mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 500; }
+      }
+    }
+
+    mat-divider { margin: 20px 0 !important; }
+
+    .token-section {
+      .token-description {
+        font-size: 13px;
+        color: var(--gray-500, #6B7280);
+        margin: 0 0 16px;
+        line-height: 1.5;
+      }
+    }
+
+    .token-form {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .token-field { flex: 1; }
+
+      .validate-btn {
+        height: 56px;
+        white-space: nowrap;
+        mat-spinner { display: inline-block; margin-right: 8px; }
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+      .asaas-info-grid { grid-template-columns: 1fr; }
+      .token-form { flex-direction: column; }
+      .token-field { width: 100%; }
+      .validate-btn { width: 100%; }
+    }
   `],
 })
 export class TenantInfoComponent implements OnInit {
