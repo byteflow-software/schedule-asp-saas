@@ -1,7 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { HeaderComponent } from '../../shared/components/header/header.component';
+import { TenantService } from '../../core/services/tenant.service';
+import { AsaasSetupDialogComponent } from '../../shared/components/asaas-setup-dialog/asaas-setup-dialog.component';
 
 @Component({
   selector: 'app-main-layout',
@@ -36,4 +39,20 @@ import { HeaderComponent } from '../../shared/components/header/header.component
     }
   `],
 })
-export class MainLayoutComponent {}
+export class MainLayoutComponent implements OnInit {
+  private tenantService = inject(TenantService);
+  private dialog = inject(MatDialog);
+
+  ngOnInit(): void {
+    this.tenantService.getMyTenant().subscribe({
+      next: (tenant) => {
+        if (!tenant.hasAsaasIntegration) {
+          this.dialog.open(AsaasSetupDialogComponent, {
+            width: '520px',
+            disableClose: true,
+          });
+        }
+      },
+    });
+  }
+}
