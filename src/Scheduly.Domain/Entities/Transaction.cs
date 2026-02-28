@@ -16,6 +16,11 @@ public class Transaction : AuditableEntity, ITenantScoped
     public DateTime? PaidAt { get; set; }
     public string? PaymentMethod { get; set; }
 
+    // Asaas integration
+    public string? AsaasPaymentId { get; set; }
+    public string? InvoiceUrl { get; set; }
+    public string? PixQrCodeUrl { get; set; }
+
     public Tenant Tenant { get; set; } = null!;
     public Appointment Appointment { get; set; } = null!;
     public Customer Customer { get; set; } = null!;

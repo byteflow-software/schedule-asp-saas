@@ -8,6 +8,8 @@ public class Customer : AuditableEntity, ITenantScoped, ISoftDeletable
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string CpfCnpj { get; set; } = string.Empty;
+    public string? AsaasCustomerId { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 
