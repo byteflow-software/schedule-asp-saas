@@ -33,7 +33,7 @@ import { ServiceFormComponent } from '../service-form/service-form.component';
 
       @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
-      } @else if (services.length === 0) {
+      } @else if (services().length === 0) {
         <div class="empty-state">
           <mat-icon>design_services</mat-icon>
           <h4>Nenhum serviço cadastrado</h4>
@@ -43,7 +43,7 @@ import { ServiceFormComponent } from '../service-form/service-form.component';
           </button>
         </div>
       } @else {
-        <table mat-table [dataSource]="services" class="full-width">
+        <table mat-table [dataSource]="services()" class="full-width">
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Nome</th>
             <td mat-cell *matCellDef="let s">
@@ -120,7 +120,7 @@ export class ServiceListComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  services: ServiceDto[] = [];
+  services = signal<ServiceDto[]>([]);
   columns = ['name', 'durationMinutes', 'priceInCents', 'isActive', 'actions'];
   loading = signal(true);
 
@@ -130,7 +130,7 @@ export class ServiceListComponent implements OnInit {
     this.loading.set(true);
     this.serviceService.getAll().subscribe({
       next: (result) => {
-        this.services = result;
+        this.services.set(result);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },

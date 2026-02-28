@@ -126,7 +126,7 @@ export class AppointmentCalendarComponent implements OnInit {
   private dialog = inject(MatDialog);
 
   loading = signal(true);
-  appointments: AppointmentDto[] = [];
+  appointments = signal<AppointmentDto[]>([]);
   weekStart = this.getWeekStart(new Date());
   weekDays: { name: string; date: Date }[] = [];
   weekLabel = '';
@@ -160,7 +160,7 @@ export class AppointmentCalendarComponent implements OnInit {
     const to = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}T23:59:59Z`;
     this.appointmentService.getAll({ from, to, pageSize: 100 }).subscribe({
       next: (result) => {
-        this.appointments = result.items;
+        this.appointments.set(result.items);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },
@@ -193,7 +193,7 @@ export class AppointmentCalendarComponent implements OnInit {
   }
 
   getAppointmentsForDay(date: Date): AppointmentDto[] {
-    return this.appointments.filter((a) => {
+    return this.appointments().filter((a) => {
       const aptDate = new Date(a.startTime);
       return aptDate.toDateString() === date.toDateString();
     });

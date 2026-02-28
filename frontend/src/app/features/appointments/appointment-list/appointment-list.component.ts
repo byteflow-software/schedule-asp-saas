@@ -70,14 +70,14 @@ import { CurrencyCentsPipe } from '../../../shared/pipes/currency-cents.pipe';
 
       @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
-      } @else if (appointments.length === 0) {
+      } @else if (appointments().length === 0) {
         <div class="empty-state">
           <mat-icon>event_busy</mat-icon>
           <h4>Nenhum agendamento encontrado</h4>
           <p>Tente ajustar os filtros ou crie um novo agendamento</p>
         </div>
       } @else {
-        <table mat-table [dataSource]="appointments" class="full-width">
+        <table mat-table [dataSource]="appointments()" class="full-width">
           <ng-container matColumnDef="startTime">
             <th mat-header-cell *matHeaderCellDef>Data/Hora</th>
             <td mat-cell *matCellDef="let a">{{ a.startTime | dateFormat:'full' }}</td>
@@ -129,8 +129,8 @@ import { CurrencyCentsPipe } from '../../../shared/pipes/currency-cents.pipe';
         </table>
 
         <app-pagination
-          [pageNumber]="pageNumber" [totalPages]="totalPages" [totalCount]="totalCount"
-          [hasPreviousPage]="hasPreviousPage" [hasNextPage]="hasNextPage"
+          [pageNumber]="pageNumber" [totalPages]="totalPages()" [totalCount]="totalCount()"
+          [hasPreviousPage]="hasPreviousPage()" [hasNextPage]="hasNextPage()"
           (pageChange)="loadPage($event)" />
       }
     </div>
@@ -175,17 +175,17 @@ export class AppointmentListComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
-  appointments: AppointmentDto[] = [];
+  appointments = signal<AppointmentDto[]>([]);
   columns = ['startTime', 'customerName', 'serviceName', 'userName', 'priceInCents', 'status', 'actions'];
   loading = signal(true);
   fromDate = '';
   toDate = '';
   statusFilter = '';
   pageNumber = 1;
-  totalPages = 1;
-  totalCount = 0;
-  hasPreviousPage = false;
-  hasNextPage = false;
+  totalPages = signal(1);
+  totalCount = signal(0);
+  hasPreviousPage = signal(false);
+  hasNextPage = signal(false);
 
   ngOnInit(): void {
     const today = new Date();
@@ -206,11 +206,11 @@ export class AppointmentListComponent implements OnInit {
         if (this.statusFilter) {
           items = items.filter(a => a.status === this.statusFilter);
         }
-        this.appointments = items;
-        this.totalPages = result.totalPages;
-        this.totalCount = result.totalCount;
-        this.hasPreviousPage = result.hasPreviousPage;
-        this.hasNextPage = result.hasNextPage;
+        this.appointments.set(items);
+        this.totalPages.set(result.totalPages);
+        this.totalCount.set(result.totalCount);
+        this.hasPreviousPage.set(result.hasPreviousPage);
+        this.hasNextPage.set(result.hasNextPage);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },

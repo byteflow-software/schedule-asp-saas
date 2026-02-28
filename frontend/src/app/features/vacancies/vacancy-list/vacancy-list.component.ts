@@ -52,7 +52,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <mat-label>Profissional</mat-label>
           <mat-select [(ngModel)]="filterUserId" (selectionChange)="load()">
             <mat-option value="">Todos</mat-option>
-            @for (u of users; track u.id) {
+            @for (u of users(); track u.id) {
               <mat-option [value]="u.id">{{ u.fullName }}</mat-option>
             }
           </mat-select>
@@ -61,7 +61,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <mat-label>Servi\u00e7o</mat-label>
           <mat-select [(ngModel)]="filterServiceId" (selectionChange)="load()">
             <mat-option value="">Todos</mat-option>
-            @for (s of services; track s.id) {
+            @for (s of services(); track s.id) {
               <mat-option [value]="s.id">{{ s.name }}</mat-option>
             }
           </mat-select>
@@ -78,7 +78,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
 
       @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
-      } @else if (vacancies.length === 0) {
+      } @else if (vacancies().length === 0) {
         <div class="empty-state">
           <mat-icon>event_available</mat-icon>
           <h4>Nenhuma vaga encontrada</h4>
@@ -88,7 +88,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           </button>
         </div>
       } @else {
-        <table mat-table [dataSource]="vacancies" class="full-width">
+        <table mat-table [dataSource]="vacancies()" class="full-width">
           <ng-container matColumnDef="userName">
             <th mat-header-cell *matHeaderCellDef>Profissional</th>
             <td mat-cell *matCellDef="let v">
@@ -174,9 +174,9 @@ export class VacancyListComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  vacancies: VacancyDto[] = [];
-  users: UserDto[] = [];
-  services: ServiceDto[] = [];
+  vacancies = signal<VacancyDto[]>([]);
+  users = signal<UserDto[]>([]);
+  services = signal<ServiceDto[]>([]);
   columns = ['userName', 'serviceName', 'startTime', 'endTime', 'isBooked', 'actions'];
   loading = signal(true);
 
@@ -193,10 +193,10 @@ export class VacancyListComponent implements OnInit {
     this.toDate = nextWeek.toISOString().split('T')[0];
 
     this.userService.getAll().subscribe({
-      next: (users) => { this.users = users.filter(u => u.isActive); },
+      next: (users) => { this.users.set(users.filter(u => u.isActive)); },
     });
     this.serviceService.getAll().subscribe({
-      next: (services) => { this.services = services.filter(s => s.isActive); },
+      next: (services) => { this.services.set(services.filter(s => s.isActive)); },
     });
 
     this.load();
@@ -212,7 +212,7 @@ export class VacancyListComponent implements OnInit {
 
     this.vacancyService.getAll(filters).subscribe({
       next: (vacancies) => {
-        this.vacancies = vacancies;
+        this.vacancies.set(vacancies);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },

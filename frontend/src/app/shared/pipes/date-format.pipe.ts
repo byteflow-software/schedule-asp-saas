@@ -2,7 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'dateFormat', standalone: true })
 export class DateFormatPipe implements PipeTransform {
-  transform(value: string | null, format: 'short' | 'time' | 'full' = 'short'): string {
+  transform(value: string | null | undefined, format: 'short' | 'time' | 'full' = 'short'): string {
     if (!value) return '';
     const date = new Date(value);
     const options: Intl.DateTimeFormatOptions =

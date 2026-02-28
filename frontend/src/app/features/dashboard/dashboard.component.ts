@@ -35,21 +35,21 @@ import { TenantDto } from '../../core/models/tenant.model';
           <div class="stat-card stat-indigo">
             <div class="stat-icon-wrap"><mat-icon>calendar_month</mat-icon></div>
             <div class="stat-info">
-              <span class="stat-value">{{ todayAppointments.length }}</span>
+              <span class="stat-value">{{ todayAppointments().length }}</span>
               <span class="stat-label">Agendamentos Hoje</span>
             </div>
           </div>
           <div class="stat-card stat-emerald">
             <div class="stat-icon-wrap"><mat-icon>people_alt</mat-icon></div>
             <div class="stat-info">
-              <span class="stat-value">{{ totalCustomers }}</span>
+              <span class="stat-value">{{ totalCustomers() }}</span>
               <span class="stat-label">Total de Clientes</span>
             </div>
           </div>
           <div class="stat-card stat-amber">
             <div class="stat-icon-wrap"><mat-icon>event_available</mat-icon></div>
             <div class="stat-info">
-              <span class="stat-value">{{ weekAppointments }}</span>
+              <span class="stat-value">{{ weekAppointments() }}</span>
               <span class="stat-label">Agendamentos na Semana</span>
             </div>
           </div>
@@ -60,7 +60,7 @@ import { TenantDto } from '../../core/models/tenant.model';
           <a mat-button routerLink="/appointments" class="see-all">Ver todos <mat-icon>arrow_forward</mat-icon></a>
         </div>
 
-        @if (todayAppointments.length === 0) {
+        @if (todayAppointments().length === 0) {
           <div class="empty-state">
             <mat-icon>event_available</mat-icon>
             <h4>Nenhum agendamento para hoje</h4>
@@ -68,7 +68,7 @@ import { TenantDto } from '../../core/models/tenant.model';
           </div>
         } @else {
           <div class="today-list">
-            @for (apt of todayAppointments; track apt.id) {
+            @for (apt of todayAppointments(); track apt.id) {
               <div class="today-item">
                 <div class="time-col">
                   <span class="time-start">{{ apt.startTime | dateFormat:'time' }}</span>
@@ -164,10 +164,10 @@ export class DashboardComponent implements OnInit {
   private tenantService = inject(TenantService);
 
   loading = signal(true);
-  todayAppointments: AppointmentDto[] = [];
-  totalCustomers = 0;
-  weekAppointments = 0;
-  tenant: TenantDto | null = null;
+  todayAppointments = signal<AppointmentDto[]>([]);
+  totalCustomers = signal(0);
+  weekAppointments = signal(0);
+  tenant = signal<TenantDto | null>(null);
 
   ngOnInit(): void {
     const today = new Date();
@@ -178,7 +178,7 @@ export class DashboardComponent implements OnInit {
     const to = `${y}-${m}-${d}T23:59:59Z`;
 
     this.appointmentService.getAll({ from, to, pageSize: 50 }).subscribe({
-      next: (result) => { this.todayAppointments = result.items; },
+      next: (result) => { this.todayAppointments.set(result.items); },
       error: () => {},
     });
     // Week appointments count
@@ -189,15 +189,15 @@ export class DashboardComponent implements OnInit {
     const wd = String(weekEnd.getDate()).padStart(2, '0');
     const weekTo = `${wy}-${wm}-${wd}T23:59:59Z`;
     this.appointmentService.getAll({ from, to: weekTo, pageSize: 1 }).subscribe({
-      next: (result) => { this.weekAppointments = result.totalCount; },
+      next: (result) => { this.weekAppointments.set(result.totalCount); },
       error: () => {},
     });
     this.customerService.getAll(undefined, 1, 1).subscribe({
-      next: (result) => { this.totalCustomers = result.totalCount; },
+      next: (result) => { this.totalCustomers.set(result.totalCount); },
       error: () => {},
     });
     this.tenantService.getMyTenant().subscribe({
-      next: (tenant) => { this.tenant = tenant; this.loading.set(false); },
+      next: (tenant) => { this.tenant.set(tenant); this.loading.set(false); },
       error: () => { this.loading.set(false); },
     });
   }

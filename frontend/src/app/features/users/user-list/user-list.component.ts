@@ -34,7 +34,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
       @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
       } @else {
-        <table mat-table [dataSource]="users" class="full-width">
+        <table mat-table [dataSource]="users()" class="full-width">
           <ng-container matColumnDef="fullName">
             <th mat-header-cell *matHeaderCellDef>Membro</th>
             <td mat-cell *matCellDef="let u">
@@ -109,7 +109,7 @@ export class UserListComponent implements OnInit {
   private userService = inject(UserService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
-  users: UserDto[] = [];
+  users = signal<UserDto[]>([]);
   columns = ['fullName', 'role', 'isActive', 'createdAt', 'actions'];
   loading = signal(true);
 
@@ -118,7 +118,7 @@ export class UserListComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.userService.getAll().subscribe({
-      next: (users) => { this.users = users; this.loading.set(false); },
+      next: (users) => { this.users.set(users); this.loading.set(false); },
       error: () => {
         this.loading.set(false);
         this.snackBar.open('Erro ao carregar equipe.', 'OK', { duration: 3000 });
