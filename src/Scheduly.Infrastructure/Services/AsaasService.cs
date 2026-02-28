@@ -17,10 +17,15 @@ public class AsaasService : IAsaasService
     private const string ProductionBaseUrl = "https://api.asaas.com/v3/";
     private const string SandboxBaseUrl = "https://sandbox.asaas.com/api/v3/";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions WriteOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    private static readonly JsonSerializerOptions ReadOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
     };
 
     public AsaasService(HttpClient httpClient, IOptions<AsaasSettings> settings, ILogger<AsaasService> logger)
@@ -50,7 +55,7 @@ public class AsaasService : IAsaasService
             email,
             phone,
             externalReference
-        }, options: JsonOptions);
+        }, options: WriteOptions);
 
         var response = await _httpClient.SendAsync(request, ct);
         var body = await response.Content.ReadAsStringAsync(ct);
@@ -61,11 +66,14 @@ public class AsaasService : IAsaasService
             throw new InvalidOperationException($"Asaas API error: {response.StatusCode}");
         }
 
-        var result = JsonSerializer.Deserialize<JsonElement>(body);
+        _logger.LogDebug("Asaas CreateCustomer response: {Body}", body);
+        var result = JsonSerializer.Deserialize<AsaasApiCustomerResult>(body, ReadOptions)
+            ?? throw new InvalidOperationException("Failed to parse Asaas customer response.");
+
         return new AsaasCustomerResponse(
-            result.GetProperty("id").GetString()!,
-            result.GetProperty("name").GetString()!,
-            result.GetProperty("cpfCnpj").GetString()!);
+            result.Id ?? throw new InvalidOperationException("Asaas customer response missing 'id'."),
+            result.Name ?? "",
+            result.CpfCnpj ?? "");
     }
 
     public async Task<AsaasPaymentResponse> CreatePaymentWithSplitAsync(
@@ -85,7 +93,6 @@ public class AsaasService : IAsaasService
             ["externalReference"] = externalReference
         };
 
-        // Add platform split if configured
         if (!string.IsNullOrEmpty(_settings.PlatformWalletId) && _settings.PlatformSplitPercent > 0)
         {
             payload["split"] = new[]
@@ -99,7 +106,7 @@ public class AsaasService : IAsaasService
             };
         }
 
-        request.Content = JsonContent.Create(payload, options: JsonOptions);
+        request.Content = JsonContent.Create(payload, options: WriteOptions);
 
         var response = await _httpClient.SendAsync(request, ct);
         var body = await response.Content.ReadAsStringAsync(ct);
@@ -110,14 +117,17 @@ public class AsaasService : IAsaasService
             throw new InvalidOperationException($"Asaas API error: {response.StatusCode}");
         }
 
-        var result = JsonSerializer.Deserialize<JsonElement>(body);
+        _logger.LogDebug("Asaas CreatePayment response: {Body}", body);
+        var result = JsonSerializer.Deserialize<AsaasApiPaymentResult>(body, ReadOptions)
+            ?? throw new InvalidOperationException("Failed to parse Asaas payment response.");
+
         return new AsaasPaymentResponse(
-            result.GetProperty("id").GetString()!,
-            result.GetProperty("status").GetString()!,
-            result.TryGetProperty("billingType", out var bt) ? bt.GetString() : null,
-            result.TryGetProperty("invoiceUrl", out var iu) ? iu.GetString() : null,
-            result.TryGetProperty("bankSlipUrl", out var bs) ? bs.GetString() : null,
-            result.TryGetProperty("pixQrCodeUrl", out var pq) ? pq.GetString() : null);
+            result.Id ?? throw new InvalidOperationException("Asaas payment response missing 'id'."),
+            result.Status ?? "PENDING",
+            result.BillingType,
+            result.InvoiceUrl,
+            result.BankSlipUrl,
+            result.PixQrCodeUrl);
     }
 
     public async Task<AsaasAccountResponse> ValidateApiKeyAsync(string apiKey, CancellationToken ct)
@@ -128,15 +138,45 @@ public class AsaasService : IAsaasService
         var response = await _httpClient.SendAsync(request, ct);
         var body = await response.Content.ReadAsStringAsync(ct);
 
+        _logger.LogInformation("Asaas ValidateApiKey status: {StatusCode}, body: {Body}", response.StatusCode, body);
+
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("Asaas ValidateApiKey failed: {StatusCode} {Body}", response.StatusCode, body);
             throw new InvalidOperationException("Invalid Asaas API key.");
         }
 
-        var result = JsonSerializer.Deserialize<JsonElement>(body);
+        var result = JsonSerializer.Deserialize<AsaasApiAccountResult>(body, ReadOptions)
+            ?? throw new InvalidOperationException("Failed to parse Asaas account response.");
+
         return new AsaasAccountResponse(
-            result.GetProperty("walletId").GetString()!,
-            result.GetProperty("name").GetString()!);
+            result.WalletId ?? result.Id ?? "unknown",
+            result.Name ?? result.CompanyName ?? "");
+    }
+
+    // Internal DTOs for Asaas API JSON responses
+    private sealed class AsaasApiCustomerResult
+    {
+        public string? Id { get; set; }
+        public string? Name { get; set; }
+        public string? CpfCnpj { get; set; }
+    }
+
+    private sealed class AsaasApiPaymentResult
+    {
+        public string? Id { get; set; }
+        public string? Status { get; set; }
+        public string? BillingType { get; set; }
+        public string? InvoiceUrl { get; set; }
+        public string? BankSlipUrl { get; set; }
+        public string? PixQrCodeUrl { get; set; }
+    }
+
+    private sealed class AsaasApiAccountResult
+    {
+        public string? Id { get; set; }
+        public string? WalletId { get; set; }
+        public string? Name { get; set; }
+        public string? CompanyName { get; set; }
+        public string? TradingName { get; set; }
     }
 }
