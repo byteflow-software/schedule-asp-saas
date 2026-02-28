@@ -132,6 +132,10 @@ html, body {
   font-weight: 600;
   letter-spacing: 0.3px;
   &:hover { background: var(--primary-dark) !important; }
+  &:disabled {
+    background: var(--gray-300) !important;
+    color: var(--gray-500) !important;
+  }
 }
 
 .mat-mdc-outlined-button, .mat-mdc-button {
