@@ -58,21 +58,27 @@ import { TenantService } from '../../../core/services/tenant.service';
 
         @if (error()) {
           <div class="error-msg">
-            <mat-icon>error</mat-icon> {{ error() }}
+            <mat-icon>error</mat-icon>
+            <span>{{ error() }}</span>
           </div>
         }
 
         <div class="dialog-actions">
-          <button mat-flat-button color="primary" class="full-width validate-btn"
+          <button mat-flat-button color="primary" class="action-btn primary-btn"
             [disabled]="!apiKey || validating()" (click)="validate()">
             @if (validating()) {
-              <mat-spinner diameter="20"></mat-spinner> Validando...
+              <mat-spinner diameter="18"></mat-spinner>
+              <span>Validando...</span>
             } @else {
-              <mat-icon>verified</mat-icon> Validar e Salvar
+              <ng-container>
+                <mat-icon>verified</mat-icon>
+                <span>Validar e Salvar</span>
+              </ng-container>
             }
           </button>
-          <button mat-button class="settings-link" (click)="goToSettings()">
-            <mat-icon>settings</mat-icon> Ir para Configurações
+          <button mat-button class="action-btn secondary-btn" (click)="goToSettings()">
+            <mat-icon>settings</mat-icon>
+            <span>Ir para Configurações</span>
           </button>
         </div>
       } @else {
@@ -82,8 +88,11 @@ import { TenantService } from '../../../core/services/tenant.service';
           </div>
           <h2>Integração Configurada!</h2>
           <p class="subtitle">Sua conta Asaas foi conectada com sucesso. Agora você pode criar agendamentos com cobrança automática.</p>
-          <button mat-flat-button color="primary" (click)="dialogRef.close(true)">
-            <mat-icon>arrow_forward</mat-icon> Continuar
+          <button mat-flat-button color="primary" class="action-btn primary-btn" (click)="dialogRef.close(true)">
+            <ng-container>
+              <mat-icon>arrow_forward</mat-icon>
+              <span>Continuar</span>
+            </ng-container>
           </button>
         </div>
       }
@@ -95,52 +104,171 @@ import { TenantService } from '../../../core/services/tenant.service';
       text-align: center;
       max-width: 480px;
     }
+
     .dialog-icon {
-      width: 64px; height: 64px; border-radius: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
       background: linear-gradient(135deg, #4F46E5, #7C3AED);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin: 0 auto 20px;
-      mat-icon { color: white; font-size: 32px; width: 32px; height: 32px; }
+
+      mat-icon {
+        color: white;
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
     }
-    h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; color: #111827; }
-    .subtitle { font-size: 14px; color: #6B7280; margin: 0 0 24px; line-height: 1.5; }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6B7280;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+
     .steps {
       text-align: left;
-      background: #F9FAFB; border-radius: 12px; padding: 16px;
-      margin-bottom: 24px; border: 1px solid #E5E7EB;
+      background: #F9FAFB;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #E5E7EB;
     }
+
     .step {
-      display: flex; align-items: flex-start; gap: 12px; padding: 8px 0;
-      &:not(:last-child) { border-bottom: 1px solid #E5E7EB; }
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+
+      &:not(:last-child) {
+        border-bottom: 1px solid #E5E7EB;
+      }
     }
+
     .step-number {
-      min-width: 28px; height: 28px; border-radius: 8px;
-      background: #4F46E5; color: white; font-weight: 700; font-size: 13px;
-      display: flex; align-items: center; justify-content: center;
+      min-width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: #4F46E5;
+      color: white;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
+
     .step-text {
-      font-size: 14px; color: #374151; line-height: 1.5; padding-top: 3px;
-      a { color: #4F46E5; font-weight: 600; }
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+      padding-top: 2px;
+
+      a {
+        color: #4F46E5;
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover { text-decoration: underline; }
+      }
+
       strong { color: #111827; }
     }
+
     .full-width { width: 100%; }
+
     .error-msg {
-      display: flex; align-items: center; gap: 8px; justify-content: center;
-      color: #DC2626; font-size: 14px; margin-bottom: 16px;
-      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      color: #DC2626;
+      font-size: 13px;
+      margin: -8px 0 16px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
     }
-    .dialog-actions { display: flex; flex-direction: column; gap: 8px; }
-    .validate-btn {
-      height: 48px; font-size: 15px;
-      mat-spinner { display: inline-block; margin-right: 8px; }
+
+    .dialog-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
     }
-    .settings-link { color: #6B7280; }
-    .success-state { padding: 16px 0; }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      border-radius: 10px !important;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      span {
+        font-size: 14px;
+        font-weight: 600;
+      }
+    }
+
+    .primary-btn {
+      height: 46px;
+
+      mat-spinner {
+        display: inline-block;
+        --mdc-circular-progress-active-indicator-color: white;
+      }
+    }
+
+    .secondary-btn {
+      height: 40px;
+      color: #6B7280;
+
+      span { font-weight: 500; }
+    }
+
+    .success-state {
+      padding: 16px 0;
+    }
+
     .success-icon {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: #D1FAE5; display: flex; align-items: center; justify-content: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #D1FAE5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin: 0 auto 20px;
-      mat-icon { color: #059669; font-size: 40px; width: 40px; height: 40px; }
+
+      mat-icon {
+        color: #059669;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
     }
   `],
 })
