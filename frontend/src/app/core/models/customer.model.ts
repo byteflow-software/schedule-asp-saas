@@ -3,6 +3,7 @@ export interface CustomerDto {
   fullName: string;
   email: string;
   phone?: string;
+  cpfCnpj: string;
   createdAt: string;
 }
 
@@ -10,6 +11,7 @@ export interface CreateCustomerRequest {
   fullName: string;
   email: string;
   phone?: string;
+  cpfCnpj: string;
 }
 
 export interface UpdateCustomerRequest {
@@ -17,4 +19,5 @@ export interface UpdateCustomerRequest {
   fullName: string;
   email: string;
   phone?: string;
+  cpfCnpj: string;
 }

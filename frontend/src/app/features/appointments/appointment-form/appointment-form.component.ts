@@ -63,6 +63,10 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
                   <input matInput formControlName="newCustomerName" />
                 </mat-form-field>
                 <mat-form-field class="full-width" appearance="outline">
+                  <mat-label>CPF/CNPJ</mat-label>
+                  <input matInput formControlName="newCustomerCpfCnpj" />
+                </mat-form-field>
+                <mat-form-field class="full-width" appearance="outline">
                   <mat-label>Email</mat-label>
                   <input matInput type="email" formControlName="newCustomerEmail" />
                 </mat-form-field>
@@ -300,6 +304,7 @@ export class AppointmentFormComponent implements OnInit {
     newCustomerName: [''],
     newCustomerEmail: [''],
     newCustomerPhone: [''],
+    newCustomerCpfCnpj: [''],
   });
 
   serviceForm = this.fb.nonNullable.group({
@@ -345,9 +350,10 @@ export class AppointmentFormComponent implements OnInit {
     const name = this.clientForm.get('newCustomerName')?.value;
     const email = this.clientForm.get('newCustomerEmail')?.value;
     const phone = this.clientForm.get('newCustomerPhone')?.value;
-    if (!name || !email) return;
+    const cpfCnpj = this.clientForm.get('newCustomerCpfCnpj')?.value;
+    if (!name || !email || !cpfCnpj) return;
     this.creatingCustomer = true;
-    this.customerService.create({ fullName: name, email, phone: phone || undefined }).subscribe({
+    this.customerService.create({ fullName: name, email, phone: phone || undefined, cpfCnpj }).subscribe({
       next: (customer) => {
         this.customers = [...this.customers, customer];
         this.clientForm.patchValue({ customerId: customer.id });

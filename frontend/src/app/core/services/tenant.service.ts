@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { TenantDto } from '../models/tenant.model';
+import { TenantDto, UpdateTenantRequest } from '../models/tenant.model';
 
 @Injectable({ providedIn: 'root' })
 export class TenantService {
@@ -12,5 +12,13 @@ export class TenantService {
 
   getMyTenant(): Observable<TenantDto> {
     return this.http.get<TenantDto>(`${this.apiUrl}/me`);
+  }
+
+  updateTenant(data: UpdateTenantRequest): Observable<TenantDto> {
+    return this.http.put<TenantDto>(`${this.apiUrl}/me`, data);
+  }
+
+  validateAsaasKey(apiKey: string): Observable<TenantDto> {
+    return this.http.post<TenantDto>(`${this.apiUrl}/me/validate-asaas`, { apiKey });
   }
 }

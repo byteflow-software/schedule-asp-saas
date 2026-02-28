@@ -49,7 +49,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
 
       @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
-      } @else if (customers.length === 0) {
+      } @else if (customers().length === 0) {
         <div class="empty-state">
           <mat-icon>people_outline</mat-icon>
           <h4>{{ search ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado' }}</h4>
@@ -61,7 +61,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           }
         </div>
       } @else {
-        <table mat-table [dataSource]="customers" class="full-width">
+        <table mat-table [dataSource]="customers()" class="full-width">
           <ng-container matColumnDef="fullName">
             <th mat-header-cell *matHeaderCellDef>Nome</th>
             <td mat-cell *matCellDef="let c">
@@ -70,6 +70,10 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
                 <span class="name-text">{{ c.fullName }}</span>
               </div>
             </td>
+          </ng-container>
+          <ng-container matColumnDef="cpfCnpj">
+            <th mat-header-cell *matHeaderCellDef>CPF/CNPJ</th>
+            <td mat-cell *matCellDef="let c">{{ c.cpfCnpj }}</td>
           </ng-container>
           <ng-container matColumnDef="email">
             <th mat-header-cell *matHeaderCellDef>Email</th>
@@ -101,8 +105,8 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
         </table>
 
         <app-pagination
-          [pageNumber]="pageNumber" [totalPages]="totalPages" [totalCount]="totalCount"
-          [hasPreviousPage]="hasPreviousPage" [hasNextPage]="hasNextPage"
+          [pageNumber]="pageNumber" [totalPages]="totalPages()" [totalCount]="totalCount()"
+          [hasPreviousPage]="hasPreviousPage()" [hasNextPage]="hasNextPage()"
           (pageChange)="loadPage($event)" />
       }
     </div>
@@ -155,15 +159,15 @@ export class CustomerListComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  customers: CustomerDto[] = [];
-  columns = ['fullName', 'email', 'phone', 'createdAt', 'actions'];
+  customers = signal<CustomerDto[]>([]);
+  columns = ['fullName', 'cpfCnpj', 'email', 'phone', 'createdAt', 'actions'];
   search = '';
   loading = signal(true);
   pageNumber = 1;
-  totalPages = 1;
-  totalCount = 0;
-  hasPreviousPage = false;
-  hasNextPage = false;
+  totalPages = signal(1);
+  totalCount = signal(0);
+  hasPreviousPage = signal(false);
+  hasNextPage = signal(false);
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void { this.load(); }
@@ -172,11 +176,11 @@ export class CustomerListComponent implements OnInit {
     this.loading.set(true);
     this.customerService.getAll(this.search, this.pageNumber).subscribe({
       next: (result) => {
-        this.customers = result.items;
-        this.totalPages = result.totalPages;
-        this.totalCount = result.totalCount;
-        this.hasPreviousPage = result.hasPreviousPage;
-        this.hasNextPage = result.hasNextPage;
+        this.customers.set(result.items);
+        this.totalPages.set(result.totalPages);
+        this.totalCount.set(result.totalCount);
+        this.hasPreviousPage.set(result.hasPreviousPage);
+        this.hasNextPage.set(result.hasNextPage);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },

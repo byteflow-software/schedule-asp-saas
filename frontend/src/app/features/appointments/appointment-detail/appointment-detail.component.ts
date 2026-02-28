@@ -26,24 +26,24 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     <div class="page-container">
       @if (loading()) {
         <div class="loading"><mat-spinner></mat-spinner></div>
-      } @else if (appointment) {
+      } @else if (appointment()) {
         <div class="page-header">
           <div>
             <button mat-icon-button (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
             <h2>Detalhes do Agendamento</h2>
           </div>
           <div class="header-actions">
-            @if (appointment.status === 'PendingPayment') {
+            @if (appointment()!.status === 'PendingPayment') {
               <button mat-stroked-button color="primary" (click)="confirmPayment()">
                 <mat-icon>payment</mat-icon> Registrar Pagamento
               </button>
             }
-            @if (appointment.status === 'Confirmed') {
+            @if (appointment()!.status === 'Confirmed') {
               <button mat-stroked-button color="primary" (click)="markDone()">
                 <mat-icon>check_circle</mat-icon> Marcar Concluído
               </button>
             }
-            @if (appointment.status !== 'Cancelled' && appointment.status !== 'Completed') {
+            @if (appointment()!.status !== 'Cancelled' && appointment()!.status !== 'Completed') {
               <button mat-stroked-button color="warn" (click)="cancelAppointment()">
                 <mat-icon>cancel</mat-icon> Cancelar
               </button>
@@ -57,21 +57,21 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">Status</span>
-                <span class="status-badge" [attr.data-status]="appointment.status">
-                  {{ appointment.status | statusTranslate }}
+                <span class="status-badge" [attr.data-status]="appointment()!.status">
+                  {{ appointment()!.status | statusTranslate }}
                 </span>
               </div>
               <div class="info-item">
                 <span class="label">Serviço</span>
-                <span class="value">{{ appointment.serviceName }}</span>
+                <span class="value">{{ appointment()!.serviceName }}</span>
               </div>
               <div class="info-item">
                 <span class="label">Valor</span>
-                <span class="value price">{{ appointment.priceInCents | currencyCents }}</span>
+                <span class="value price">{{ appointment()!.priceInCents | currencyCents }}</span>
               </div>
               <div class="info-item">
                 <span class="label">Criado em</span>
-                <span class="value">{{ appointment.createdAt | dateFormat }}</span>
+                <span class="value">{{ appointment()!.createdAt | dateFormat }}</span>
               </div>
             </div>
           </div>
@@ -81,11 +81,11 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">Início</span>
-                <span class="value">{{ appointment.startTime | dateFormat }}</span>
+                <span class="value">{{ appointment()!.startTime | dateFormat }}</span>
               </div>
               <div class="info-item">
                 <span class="label">Fim</span>
-                <span class="value">{{ appointment.endTime | dateFormat }}</span>
+                <span class="value">{{ appointment()!.endTime | dateFormat }}</span>
               </div>
             </div>
           </div>
@@ -95,7 +95,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">Nome</span>
-                <span class="value">{{ appointment.customerName }}</span>
+                <span class="value">{{ appointment()!.customerName }}</span>
               </div>
             </div>
           </div>
@@ -105,46 +105,54 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">Nome</span>
-                <span class="value">{{ appointment.userName }}</span>
+                <span class="value">{{ appointment()!.userName }}</span>
               </div>
             </div>
           </div>
 
-          @if (appointment.notes) {
+          @if (appointment()!.notes) {
             <div class="detail-card full-width">
               <h3><mat-icon>notes</mat-icon> Observações</h3>
-              <p class="notes-text">{{ appointment.notes }}</p>
+              <p class="notes-text">{{ appointment()!.notes }}</p>
             </div>
           }
 
-          @if (appointment.transaction) {
+          @if (appointment()!.transaction) {
             <div class="detail-card full-width">
               <h3><mat-icon>receipt</mat-icon> Cobrança</h3>
               <div class="info-grid">
                 <div class="info-item">
                   <span class="label">Referência</span>
-                  <span class="value mono">{{ appointment.transaction.referenceNumber }}</span>
+                  <span class="value mono">{{ appointment()!.transaction!.referenceNumber }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Valor</span>
-                  <span class="value price">{{ appointment.transaction.amountInCents | currencyCents }}</span>
+                  <span class="value price">{{ appointment()!.transaction!.amountInCents | currencyCents }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">Status</span>
-                  <span class="status-badge" [attr.data-status]="appointment.transaction.status">
-                    {{ appointment.transaction.status | statusTranslate }}
+                  <span class="status-badge" [attr.data-status]="appointment()!.transaction!.status">
+                    {{ appointment()!.transaction!.status | statusTranslate }}
                   </span>
                 </div>
-                @if (appointment.transaction.paymentMethod) {
+                @if (appointment()!.transaction!.paymentMethod) {
                   <div class="info-item">
                     <span class="label">Forma de Pagamento</span>
-                    <span class="value">{{ appointment.transaction.paymentMethod }}</span>
+                    <span class="value">{{ appointment()!.transaction!.paymentMethod }}</span>
                   </div>
                 }
-                @if (appointment.transaction.paidAt) {
+                @if (appointment()!.transaction!.paidAt) {
                   <div class="info-item">
                     <span class="label">Pago em</span>
-                    <span class="value">{{ appointment.transaction.paidAt | dateFormat }}</span>
+                    <span class="value">{{ appointment()!.transaction!.paidAt | dateFormat }}</span>
+                  </div>
+                }
+                @if (appointment()!.transaction!.invoiceUrl) {
+                  <div class="info-item">
+                    <span class="label">Link de Pagamento</span>
+                    <a [href]="appointment()!.transaction!.invoiceUrl" target="_blank" class="invoice-link">
+                      <mat-icon>open_in_new</mat-icon> Abrir cobrança Asaas
+                    </a>
                   </div>
                 }
               </div>
@@ -176,6 +184,12 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     .price { font-weight: 700; color: #059669; font-size: 18px; }
     .mono { font-family: monospace; letter-spacing: 0.5px; }
     .notes-text { font-size: 14px; color: #4B5563; line-height: 1.6; margin: 0; }
+    .invoice-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      color: #4F46E5; text-decoration: none; font-size: 14px; font-weight: 500;
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+      &:hover { text-decoration: underline; }
+    }
     .status-badge {
       display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
       width: fit-content;
@@ -196,7 +210,7 @@ export class AppointmentDetailComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
 
-  appointment: AppointmentDto | null = null;
+  appointment = signal<AppointmentDto | null>(null);
   loading = signal(true);
 
   ngOnInit(): void {
@@ -207,7 +221,7 @@ export class AppointmentDetailComponent implements OnInit {
   loadAppointment(id: string): void {
     this.loading.set(true);
     this.appointmentService.getById(id).subscribe({
-      next: (a) => { this.appointment = a; this.loading.set(false); },
+      next: (a) => { this.appointment.set(a); this.loading.set(false); },
       error: () => { this.loading.set(false); this.router.navigate(['/appointments']); },
     });
   }
@@ -215,15 +229,15 @@ export class AppointmentDetailComponent implements OnInit {
   goBack(): void { this.router.navigate(['/appointments']); }
 
   confirmPayment(): void {
-    if (!this.appointment?.transaction) return;
-    const txId = this.appointment.transaction.id;
+    if (!this.appointment()?.transaction) return;
+    const txId = this.appointment()!.transaction!.id;
     const dialogRef = this.dialog.open(PaymentMethodDialogComponent, { width: '360px' });
     dialogRef.afterClosed().subscribe((method: string) => {
       if (method) {
         this.transactionService.pay(txId, method).subscribe({
           next: () => {
             this.snackBar.open('Pagamento registrado!', 'OK', { duration: 3000, panelClass: ['snackbar-success'] });
-            this.loadAppointment(this.appointment!.id);
+            this.loadAppointment(this.appointment()!.id);
           },
         });
       }
@@ -231,26 +245,26 @@ export class AppointmentDetailComponent implements OnInit {
   }
 
   markDone(): void {
-    if (!this.appointment) return;
-    this.appointmentService.markDone(this.appointment.id).subscribe({
+    if (!this.appointment()) return;
+    this.appointmentService.markDone(this.appointment()!.id).subscribe({
       next: () => {
         this.snackBar.open('Agendamento concluído!', 'OK', { duration: 3000, panelClass: ['snackbar-success'] });
-        this.loadAppointment(this.appointment!.id);
+        this.loadAppointment(this.appointment()!.id);
       },
     });
   }
 
   cancelAppointment(): void {
-    if (!this.appointment) return;
+    if (!this.appointment()) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: { title: 'Cancelar Agendamento', message: 'Deseja realmente cancelar este agendamento? A cobrança também será cancelada.', confirmText: 'Cancelar Agendamento' },
     });
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
-        this.appointmentService.cancel(this.appointment!.id).subscribe({
+        this.appointmentService.cancel(this.appointment()!.id).subscribe({
           next: () => {
             this.snackBar.open('Agendamento cancelado.', 'OK', { duration: 3000 });
-            this.loadAppointment(this.appointment!.id);
+            this.loadAppointment(this.appointment()!.id);
           },
         });
       }

@@ -102,21 +102,21 @@ export class PaymentMethodDialogComponent {
           <div class="stat-card stat-emerald">
             <div class="stat-icon-wrap"><mat-icon>trending_up</mat-icon></div>
             <div class="stat-info">
-              <span class="stat-value">{{ summary.totalRevenueCents | currencyCents }}</span>
+              <span class="stat-value">{{ summary().totalRevenueCents | currencyCents }}</span>
               <span class="stat-label">Receita Total</span>
             </div>
           </div>
           <div class="stat-card stat-amber">
             <div class="stat-icon-wrap"><mat-icon>schedule</mat-icon></div>
             <div class="stat-info">
-              <span class="stat-value">{{ summary.totalPendingCents | currencyCents }}</span>
+              <span class="stat-value">{{ summary().totalPendingCents | currencyCents }}</span>
               <span class="stat-label">Pendente</span>
             </div>
           </div>
           <div class="stat-card stat-indigo">
             <div class="stat-icon-wrap"><mat-icon>check_circle</mat-icon></div>
             <div class="stat-info">
-              <span class="stat-value">{{ summary.totalPaidCents | currencyCents }}</span>
+              <span class="stat-value">{{ summary().totalPaidCents | currencyCents }}</span>
               <span class="stat-label">Recebido</span>
             </div>
           </div>
@@ -143,7 +143,7 @@ export class PaymentMethodDialogComponent {
           </mat-form-field>
         </div>
 
-        <table mat-table [dataSource]="transactions" class="full-width">
+        <table mat-table [dataSource]="transactions()" class="full-width">
           <ng-container matColumnDef="referenceNumber">
             <th mat-header-cell *matHeaderCellDef>Referência</th>
             <td mat-cell *matCellDef="let t">{{ t.referenceNumber }}</td>
@@ -173,6 +173,11 @@ export class PaymentMethodDialogComponent {
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Ações</th>
             <td mat-cell *matCellDef="let t">
+              @if (t.invoiceUrl) {
+                <a mat-button color="accent" [href]="t.invoiceUrl" target="_blank">
+                  <mat-icon>open_in_new</mat-icon> Ver Cobrança
+                </a>
+              }
               @if (t.status === 'Pending') {
                 <button mat-button color="primary" (click)="openPaymentDialog(t)">
                   <mat-icon>payment</mat-icon> Registrar Pagamento
@@ -189,10 +194,10 @@ export class PaymentMethodDialogComponent {
 
         <app-pagination
           [pageNumber]="pageNumber"
-          [totalPages]="totalPages"
-          [totalCount]="totalCount"
-          [hasPreviousPage]="hasPreviousPage"
-          [hasNextPage]="hasNextPage"
+          [totalPages]="totalPages()"
+          [totalCount]="totalCount()"
+          [hasPreviousPage]="hasPreviousPage()"
+          [hasNextPage]="hasNextPage()"
           (pageChange)="loadPage($event)" />
       }
     </div>
@@ -248,8 +253,8 @@ export class FinanceDashboardComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   loading = signal(true);
-  transactions: TransactionDto[] = [];
-  summary: TransactionSummaryDto = { totalRevenueCents: 0, totalPendingCents: 0, totalPaidCents: 0, count: 0 };
+  transactions = signal<TransactionDto[]>([]);
+  summary = signal<TransactionSummaryDto>({ totalRevenueCents: 0, totalPendingCents: 0, totalPaidCents: 0, count: 0 });
   columns = ['referenceNumber', 'customerName', 'description', 'amountInCents', 'status', 'createdAt', 'actions'];
 
   fromDate = '';
@@ -257,10 +262,10 @@ export class FinanceDashboardComponent implements OnInit {
   statusFilter = '';
 
   pageNumber = 1;
-  totalPages = 1;
-  totalCount = 0;
-  hasPreviousPage = false;
-  hasNextPage = false;
+  totalPages = signal(1);
+  totalCount = signal(0);
+  hasPreviousPage = signal(false);
+  hasNextPage = signal(false);
 
   ngOnInit(): void {
     const today = new Date();
@@ -276,7 +281,7 @@ export class FinanceDashboardComponent implements OnInit {
     const to = this.toDate ? `${this.toDate}T23:59:59Z` : undefined;
 
     this.transactionService.getSummary(from, to).subscribe({
-      next: (summary) => { this.summary = summary; },
+      next: (summary) => { this.summary.set(summary); },
       error: () => {},
     });
 
@@ -288,11 +293,11 @@ export class FinanceDashboardComponent implements OnInit {
       pageSize: 10,
     }).subscribe({
       next: (result) => {
-        this.transactions = result.items;
-        this.totalPages = result.totalPages;
-        this.totalCount = result.totalCount;
-        this.hasPreviousPage = result.hasPreviousPage;
-        this.hasNextPage = result.hasNextPage;
+        this.transactions.set(result.items);
+        this.totalPages.set(result.totalPages);
+        this.totalCount.set(result.totalCount);
+        this.hasPreviousPage.set(result.hasPreviousPage);
+        this.hasNextPage.set(result.hasNextPage);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },

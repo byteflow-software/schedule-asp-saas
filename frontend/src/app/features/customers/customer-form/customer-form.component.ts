@@ -26,6 +26,11 @@ import { CustomerDto } from '../../../core/models/customer.model';
           <input matInput formControlName="fullName" placeholder="João Silva" />
         </mat-form-field>
         <mat-form-field class="full-width" appearance="outline">
+          <mat-label>CPF/CNPJ</mat-label>
+          <mat-icon matPrefix>badge</mat-icon>
+          <input matInput formControlName="cpfCnpj" placeholder="000.000.000-00" />
+        </mat-form-field>
+        <mat-form-field class="full-width" appearance="outline">
           <mat-label>Email</mat-label>
           <mat-icon matPrefix>email</mat-icon>
           <input matInput formControlName="email" type="email" placeholder="joao@email.com" />
@@ -61,6 +66,7 @@ export class CustomerFormComponent {
 
   form = this.fb.nonNullable.group({
     fullName: [this.data?.fullName ?? '', Validators.required],
+    cpfCnpj: [this.data?.cpfCnpj ?? '', Validators.required],
     email: [this.data?.email ?? '', [Validators.required, Validators.email]],
     phone: [this.data?.phone ?? ''],
   });

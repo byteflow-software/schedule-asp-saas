@@ -10,6 +10,8 @@ export interface TransactionDto {
   description?: string;
   paidAt?: string;
   paymentMethod?: string;
+  invoiceUrl?: string;
+  pixQrCodeUrl?: string;
   createdAt: string;
 }
 
