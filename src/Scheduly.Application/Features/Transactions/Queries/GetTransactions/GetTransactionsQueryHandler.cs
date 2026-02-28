@@ -36,7 +36,8 @@ public class GetTransactionsQueryHandler : IRequestHandler<GetTransactionsQuery,
                 t.Id, t.AppointmentId, t.CustomerId,
                 t.Customer.FullName, t.ReferenceNumber, t.AmountInCents,
                 t.Status.ToString(), t.Type.ToString(),
-                t.Description, t.PaidAt, t.PaymentMethod, t.CreatedAt));
+                t.Description, t.PaidAt, t.PaymentMethod,
+                t.InvoiceUrl, t.PixQrCodeUrl, t.CreatedAt));
 
         return await PaginatedList<TransactionDto>.CreateAsync(projected, request.PageNumber, request.PageSize, cancellationToken);
     }

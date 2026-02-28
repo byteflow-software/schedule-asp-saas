@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Scheduly.Application.Common.Interfaces;
 using Scheduly.Application.Features.Appointments.DTOs;
 using Scheduly.Domain.Entities;
@@ -14,17 +15,23 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
     private readonly ICurrentTenantService _currentTenantService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IEmailService _emailService;
+    private readonly IAsaasService _asaasService;
+    private readonly ILogger<CreateAppointmentCommandHandler> _logger;
 
     public CreateAppointmentCommandHandler(
         IApplicationDbContext context,
         ICurrentTenantService currentTenantService,
         IDateTimeProvider dateTimeProvider,
-        IEmailService emailService)
+        IEmailService emailService,
+        IAsaasService asaasService,
+        ILogger<CreateAppointmentCommandHandler> logger)
     {
         _context = context;
         _currentTenantService = currentTenantService;
         _dateTimeProvider = dateTimeProvider;
         _emailService = emailService;
+        _asaasService = asaasService;
+        _logger = logger;
     }
 
     public async Task<AppointmentDto> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -111,6 +118,9 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         _context.Transactions.Add(transaction);
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Asaas integration: create payment if tenant has Asaas configured
+        await TryCreateAsaasPaymentAsync(tenantId, customer, transaction, cancellationToken);
+
         // Send charge email (fire and forget, don't block)
         _ = _emailService.SendChargeEmailAsync(
             customer.Email, customer.FullName,
@@ -129,5 +139,50 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
             .FirstAsync(t => t.Id == transaction.Id, cancellationToken);
 
         return AppointmentDto.FromEntity(result, txn);
+    }
+
+    private async Task TryCreateAsaasPaymentAsync(
+        Guid tenantId, Customer customer, Transaction transaction, CancellationToken ct)
+    {
+        try
+        {
+            var tenant = await _context.Tenants
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+
+            if (tenant == null || string.IsNullOrEmpty(tenant.AsaasApiKey))
+                return;
+
+            // Create or update customer in Asaas
+            var asaasCustomer = await _asaasService.CreateOrUpdateCustomerAsync(
+                tenant.AsaasApiKey,
+                customer.FullName,
+                customer.CpfCnpj,
+                customer.Email,
+                customer.Phone,
+                customer.Id.ToString(),
+                ct);
+
+            customer.AsaasCustomerId = asaasCustomer.Id;
+
+            // Create payment with platform split (handled by service via settings)
+            var asaasPayment = await _asaasService.CreatePaymentWithSplitAsync(
+                tenant.AsaasApiKey,
+                asaasCustomer.Id,
+                transaction.AmountInCents,
+                transaction.Description ?? "Agendamento",
+                transaction.Id.ToString(),
+                ct);
+
+            transaction.AsaasPaymentId = asaasPayment.Id;
+            transaction.InvoiceUrl = asaasPayment.InvoiceUrl;
+            transaction.PixQrCodeUrl = asaasPayment.PixQrCodeUrl;
+
+            await _context.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create Asaas payment for transaction {TransactionId}", transaction.Id);
+        }
     }
 }

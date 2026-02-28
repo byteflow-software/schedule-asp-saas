@@ -7,6 +7,7 @@ public record CustomerDto(
     string FullName,
     string Email,
     string? Phone,
+    string CpfCnpj,
     DateTime CreatedAt)
 {
     public static CustomerDto FromEntity(Customer customer) => new(
@@ -14,5 +15,6 @@ public record CustomerDto(
         customer.FullName,
         customer.Email,
         customer.Phone,
+        customer.CpfCnpj,
         customer.CreatedAt);
 }

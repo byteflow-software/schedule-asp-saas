@@ -30,6 +30,7 @@ public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerComman
             FullName = request.FullName,
             Email = request.Email.ToLowerInvariant(),
             Phone = request.Phone,
+            CpfCnpj = request.CpfCnpj,
             CreatedAt = _dateTimeProvider.UtcNow
         };
 

@@ -26,6 +26,7 @@ public class UpdateCustomerCommandHandler : IRequestHandler<UpdateCustomerComman
         customer.FullName = request.FullName;
         customer.Email = request.Email.ToLowerInvariant();
         customer.Phone = request.Phone;
+        customer.CpfCnpj = request.CpfCnpj;
         customer.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);

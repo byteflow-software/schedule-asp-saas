@@ -7,4 +7,5 @@ public record UpdateCustomerCommand(
     Guid Id,
     string FullName,
     string Email,
-    string? Phone) : IRequest<CustomerDto>;
+    string? Phone,
+    string CpfCnpj) : IRequest<CustomerDto>;

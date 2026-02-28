@@ -29,7 +29,7 @@ public class GetCustomersQueryHandler : IRequestHandler<GetCustomersQuery, Pagin
 
         var projected = query
             .OrderBy(c => c.FullName)
-            .Select(c => new CustomerDto(c.Id, c.FullName, c.Email, c.Phone, c.CreatedAt));
+            .Select(c => new CustomerDto(c.Id, c.FullName, c.Email, c.Phone, c.CpfCnpj, c.CreatedAt));
 
         return await PaginatedList<CustomerDto>.CreateAsync(
             projected, request.PageNumber, request.PageSize, cancellationToken);

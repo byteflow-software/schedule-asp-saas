@@ -14,6 +14,8 @@ public record TransactionDto(
     string? Description,
     DateTime? PaidAt,
     string? PaymentMethod,
+    string? InvoiceUrl,
+    string? PixQrCodeUrl,
     DateTime CreatedAt)
 {
     public static TransactionDto FromEntity(Transaction t) => new(
@@ -21,5 +23,6 @@ public record TransactionDto(
         t.Customer?.FullName ?? "",
         t.ReferenceNumber, t.AmountInCents,
         t.Status.ToString(), t.Type.ToString(),
-        t.Description, t.PaidAt, t.PaymentMethod, t.CreatedAt);
+        t.Description, t.PaidAt, t.PaymentMethod,
+        t.InvoiceUrl, t.PixQrCodeUrl, t.CreatedAt);
 }
