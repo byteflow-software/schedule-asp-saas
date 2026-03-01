@@ -108,11 +108,13 @@ import { TenantDto } from '../../../core/models/tenant.model';
         </div>
 
         <div class="save-bar">
-          <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="saveInfo()">
+          <button mat-flat-button color="primary" class="btn-action" [disabled]="form.invalid || saving()" (click)="saveInfo()">
             @if (saving()) {
-              <mat-spinner diameter="20"></mat-spinner> Salvando...
+              <mat-spinner diameter="18"></mat-spinner>
+              <span>Salvando...</span>
             } @else {
-              <mat-icon>save</mat-icon> Salvar Alterações
+              <mat-icon>save</mat-icon>
+              <span>Salvar Alterações</span>
             }
           </button>
         </div>
@@ -176,12 +178,14 @@ import { TenantDto } from '../../../core/models/tenant.model';
                 <mat-icon>{{ showToken() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
             </mat-form-field>
-            <button mat-flat-button color="primary" class="validate-btn"
+            <button mat-flat-button color="primary" class="btn-action validate-btn"
               [disabled]="!asaasApiKey || validatingAsaas()" (click)="validateAsaas()">
               @if (validatingAsaas()) {
-                <mat-spinner diameter="20"></mat-spinner> Validando...
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Validando...</span>
               } @else {
-                <mat-icon>verified</mat-icon> Validar Token
+                <mat-icon>verified</mat-icon>
+                <span>Validar Token</span>
               }
             </button>
           </div>
@@ -241,13 +245,14 @@ import { TenantDto } from '../../../core/models/tenant.model';
     .integration-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
+      gap: 4px;
+      padding: 4px 12px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
+      line-height: 1;
 
-      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
 
       &.connected { background: #D1FAE5; color: #065F46; }
       &.disconnected { background: #FEE2E2; color: #991B1B; }
@@ -261,17 +266,27 @@ import { TenantDto } from '../../../core/models/tenant.model';
 
     .span-2 { grid-column: span 2; }
 
+    .btn-action {
+      height: 44px;
+      min-width: 160px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 0 20px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+      mat-spinner { display: inline-block; }
+    }
+
     .save-bar {
       display: flex;
       justify-content: flex-end;
       margin-bottom: 20px;
-
-      button {
-        height: 44px;
-        font-size: 14px;
-        padding: 0 24px;
-        mat-spinner { display: inline-block; margin-right: 8px; }
-      }
     }
 
     .asaas-info-grid {
@@ -325,25 +340,22 @@ import { TenantDto } from '../../../core/models/tenant.model';
 
     .token-form {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 12px;
 
       .token-field { flex: 1; }
-
-      .validate-btn {
-        height: 56px;
-        white-space: nowrap;
-        mat-spinner { display: inline-block; margin-right: 8px; }
-      }
     }
 
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
       .span-2 { grid-column: span 1; }
       .asaas-info-grid { grid-template-columns: 1fr; }
-      .token-form { flex-direction: column; }
-      .token-field { width: 100%; }
-      .validate-btn { width: 100%; }
+      .token-form {
+        flex-direction: column;
+        align-items: stretch;
+        .token-field { width: 100%; }
+        .validate-btn { width: 100%; }
+      }
     }
   `],
 })
