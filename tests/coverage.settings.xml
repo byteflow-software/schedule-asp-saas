@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <CodeCoverage>
+    <ModulePaths>
+      <Include>
+        <ModulePath>.*Scheduly\.Api\.dll$</ModulePath>
+        <ModulePath>.*Scheduly\.Application\.dll$</ModulePath>
+        <ModulePath>.*Scheduly\.Domain\.dll$</ModulePath>
+        <ModulePath>.*Scheduly\.Infrastructure\.dll$</ModulePath>
+      </Include>
+      <Exclude>
+        <ModulePath>.*Tests.*</ModulePath>
+        <ModulePath>.*xunit.*</ModulePath>
+        <ModulePath>.*Microsoft.*</ModulePath>
+      </Exclude>
+    </ModulePaths>
+    <Sources>
+      <Exclude>
+        <Source>.*Migrations.*</Source>
+      </Exclude>
+    </Sources>
+  </CodeCoverage>
+</Configuration>

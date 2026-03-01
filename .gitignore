@@ -55,6 +55,7 @@ docker/postgres_data/
 *.log
 logs/
 
-# Test results
+# Test results & coverage
 **/TestResults/
 **/coverage/
+**/wwwroot/coverage/

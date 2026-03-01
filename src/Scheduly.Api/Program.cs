@@ -1,5 +1,6 @@
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Scheduly.Api.Middleware;
 using Scheduly.Application;
 using Scheduly.Infrastructure;
@@ -62,6 +63,28 @@ if (!isTesting)
 // Middleware pipeline
 app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Coverage reports (Development only) — before auth/tenant so it's independent
+if (app.Environment.IsDevelopment())
+{
+    var coveragePath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "coverage");
+    if (Directory.Exists(coveragePath))
+    {
+        app.UseMiddleware<CoverageAuthMiddleware>();
+        var fileProvider = new PhysicalFileProvider(coveragePath);
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = fileProvider,
+            RequestPath = "/coverage",
+            ServeUnknownFileTypes = false,
+        });
+        app.UseDirectoryBrowser(new DirectoryBrowserOptions
+        {
+            FileProvider = fileProvider,
+            RequestPath = "/coverage",
+        });
+    }
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();

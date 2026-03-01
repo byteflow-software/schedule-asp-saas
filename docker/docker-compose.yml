@@ -26,6 +26,10 @@ services:
       - Email__From=noreply@scheduly.com
       - Email__FromName=Scheduly
       - Email__EnableSsl=false
+      - Coverage__Username=dev
+      - Coverage__Password=dev123
+    volumes:
+      - ../src/Scheduly.Api/wwwroot/coverage:/app/wwwroot/coverage:ro
     depends_on:
       postgres:
         condition: service_healthy

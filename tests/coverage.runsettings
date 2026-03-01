@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>[Scheduly.Api]*,[Scheduly.Application]*,[Scheduly.Domain]*,[Scheduly.Infrastructure]*</Include>
+          <Exclude>[*.Tests]*,[*Tests]*</Exclude>
+          <IncludeDirectory>../src/Scheduly.Api/bin/Debug/net10.0/,../src/Scheduly.Application/bin/Debug/net10.0/,../src/Scheduly.Domain/bin/Debug/net10.0/,../src/Scheduly.Infrastructure/bin/Debug/net10.0/</IncludeDirectory>
+          <ExcludeByFile>**/Migrations/**</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
