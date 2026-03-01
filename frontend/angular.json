@@ -65,6 +65,12 @@
           },
           "defaultConfiguration": "production"
         },
+        "test": {
+          "builder": "@angular-builders/jest:run",
+          "options": {
+            "tsConfig": "tsconfig.spec.json"
+          }
+        },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
@@ -82,5 +88,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "c0fe632c-5ee5-45a9-a9cc-b7d05e0df315"
   }
 }

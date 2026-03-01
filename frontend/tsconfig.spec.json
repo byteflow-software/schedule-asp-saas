@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "types": ["jest"],
+    "esModuleInterop": true
+  },
+  "include": [
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts",
+    "src/setup-jest.ts"
+  ]
+}
