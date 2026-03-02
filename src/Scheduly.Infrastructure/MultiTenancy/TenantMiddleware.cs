@@ -16,7 +16,8 @@ public class TenantMiddleware
         "/health",
         "/health/ready",
         "/health/live",
-        "/swagger"
+        "/swagger",
+        "/api/error-logs"
     };
 
     public TenantMiddleware(RequestDelegate next)

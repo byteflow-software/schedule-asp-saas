@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Scheduly.Application.Common.Interfaces;
+using Scheduly.Domain.Entities;
 using Scheduly.Domain.Exceptions;
 using ValidationException = Scheduly.Application.Common.Exceptions.ValidationException;
 using ForbiddenAccessException = Scheduly.Application.Common.Exceptions.ForbiddenAccessException;
@@ -20,6 +22,8 @@ public class ExceptionHandlingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        context.Request.EnableBuffering();
+
         try
         {
             await _next(context);
@@ -67,6 +71,8 @@ public class ExceptionHandlingMiddleware
         else
             _logger.LogWarning(exception, "Handled exception: {Message}", exception.Message);
 
+        await PersistErrorLogAsync(context, exception, statusCode);
+
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
@@ -77,6 +83,75 @@ public class ExceptionHandlingMiddleware
 
         await context.Response.WriteAsync(json);
     }
+
+    private async Task PersistErrorLogAsync(HttpContext context, Exception exception, int statusCode)
+    {
+        try
+        {
+            var errorLogService = context.RequestServices.GetService<IErrorLogService>();
+            if (errorLogService is null) return;
+
+            var requestBody = SanitizeBody(await ReadRequestBodyAsync(context));
+
+            var tenantIdClaim = context.User?.FindFirst("tenant_id")?.Value;
+            var userIdClaim = context.User?.FindFirst("sub")?.Value;
+
+            var errorLog = new ErrorLog
+            {
+                Level = statusCode >= 500 ? "Error" : "Warning",
+                Message = Truncate(exception.Message, 2000),
+                ExceptionType = exception.GetType().FullName,
+                StackTrace = Truncate(exception.StackTrace, 8000),
+                Source = exception.TargetSite?.DeclaringType?.Name ?? "Unknown",
+                RequestPath = Truncate(context.Request.Path, 500),
+                RequestMethod = context.Request.Method,
+                RequestBody = Truncate(requestBody, 4000),
+                HttpStatusCode = statusCode,
+                TenantId = Guid.TryParse(tenantIdClaim, out var tid) ? tid : null,
+                UserId = Guid.TryParse(userIdClaim, out var uid) ? uid : null,
+            };
+
+            if (exception.Data.Contains("AsaasRequestUrl"))
+            {
+                errorLog.ExternalRequestUrl = Truncate(exception.Data["AsaasRequestUrl"] as string, 1000);
+                errorLog.ExternalResponseBody = Truncate(exception.Data["AsaasResponseBody"] as string, 4000);
+                errorLog.ExternalStatusCode = exception.Data["AsaasStatusCode"] as int?;
+            }
+
+            await errorLogService.LogAsync(errorLog);
+        }
+        catch
+        {
+            // Must never throw — the error response must still be returned
+        }
+    }
+
+    private static async Task<string?> ReadRequestBodyAsync(HttpContext context)
+    {
+        try
+        {
+            context.Request.Body.Position = 0;
+            using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
+            var body = await reader.ReadToEndAsync();
+            context.Request.Body.Position = 0;
+            return string.IsNullOrWhiteSpace(body) ? null : body;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? SanitizeBody(string? body)
+    {
+        if (body is null) return null;
+        return System.Text.RegularExpressions.Regex.Replace(
+            body, @"""(password|senha|secret|token|apiKey|api_key)"":\s*""[^""]*""",
+            @"""$1"":""[REDACTED]""", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    }
+
+    private static string? Truncate(string? value, int maxLength)
+        => value is null ? null : value.Length <= maxLength ? value : value[..maxLength];
 
     private record ErrorResponse(
         string Code,
