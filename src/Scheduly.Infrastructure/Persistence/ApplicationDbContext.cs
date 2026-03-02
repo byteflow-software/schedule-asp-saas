@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Vacancy> Vacancies => Set<Vacancy>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
 
     public Guid CurrentTenantId => _currentTenantService.TenantId;
 

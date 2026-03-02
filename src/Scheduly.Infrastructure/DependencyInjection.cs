@@ -53,6 +53,9 @@ public static class DependencyInjection
         services.Configure<EmailSettings>(configuration.GetSection("Email"));
         services.AddScoped<IEmailService, SmtpEmailService>();
 
+        // Error logging
+        services.AddScoped<IErrorLogService, ErrorLogService>();
+
         // Asaas
         services.Configure<AsaasSettings>(configuration.GetSection(AsaasSettings.SectionName));
         services.AddHttpClient<IAsaasService, AsaasService>();
