@@ -29,24 +29,18 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
       } @else if (appointment()) {
         <div class="page-header">
           <div>
-            <button mat-icon-button (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
+            <button mat-button (click)="goBack()">Voltar</button>
             <h2>Detalhes do Agendamento</h2>
           </div>
           <div class="header-actions">
             @if (appointment()!.status === 'PendingPayment') {
-              <button mat-stroked-button color="primary" (click)="confirmPayment()">
-                <mat-icon>payment</mat-icon> Registrar Pagamento
-              </button>
+              <button mat-stroked-button color="primary" (click)="confirmPayment()">Registrar Pagamento</button>
             }
             @if (appointment()!.status === 'Confirmed') {
-              <button mat-stroked-button color="primary" (click)="markDone()">
-                <mat-icon>check_circle</mat-icon> Marcar Concluído
-              </button>
+              <button mat-stroked-button color="primary" (click)="markDone()">Marcar Concluído</button>
             }
             @if (appointment()!.status !== 'Cancelled' && appointment()!.status !== 'Completed') {
-              <button mat-stroked-button color="warn" (click)="cancelAppointment()">
-                <mat-icon>cancel</mat-icon> Cancelar
-              </button>
+              <button mat-stroked-button color="warn" (click)="cancelAppointment()">Cancelar</button>
             }
           </div>
         </div>
@@ -282,15 +276,9 @@ import { MatDialogModule, MatDialogRef as DialogRef } from '@angular/material/di
     <h2 mat-dialog-title>Forma de Pagamento</h2>
     <mat-dialog-content>
       <div class="method-grid">
-        <button mat-stroked-button (click)="select('pix')" class="method-btn">
-          <mat-icon>qr_code</mat-icon> PIX
-        </button>
-        <button mat-stroked-button (click)="select('cartao')" class="method-btn">
-          <mat-icon>credit_card</mat-icon> Cartão
-        </button>
-        <button mat-stroked-button (click)="select('dinheiro')" class="method-btn">
-          <mat-icon>payments</mat-icon> Dinheiro
-        </button>
+        <button mat-stroked-button (click)="select('pix')" class="method-btn">PIX</button>
+        <button mat-stroked-button (click)="select('cartao')" class="method-btn">Cartão</button>
+        <button mat-stroked-button (click)="select('dinheiro')" class="method-btn">Dinheiro</button>
       </div>
     </mat-dialog-content>
     <mat-dialog-actions align="end">

@@ -26,9 +26,7 @@ import { ServiceFormComponent } from '../service-form/service-form.component';
           <h2>Serviços</h2>
           <p class="page-subtitle">Gerencie seus serviços</p>
         </div>
-        <button mat-flat-button color="primary" (click)="openForm()">
-          <mat-icon>add_circle</mat-icon> Novo Serviço
-        </button>
+        <button mat-flat-button color="primary" (click)="openForm()">Novo Serviço</button>
       </div>
 
       @if (loading()) {
@@ -38,9 +36,7 @@ import { ServiceFormComponent } from '../service-form/service-form.component';
           <mat-icon>design_services</mat-icon>
           <h4>Nenhum serviço cadastrado</h4>
           <p>Comece adicionando seu primeiro serviço</p>
-          <button mat-flat-button color="primary" (click)="openForm()">
-            <mat-icon>add</mat-icon> Adicionar Serviço
-          </button>
+          <button mat-flat-button color="primary" (click)="openForm()">Adicionar Serviço</button>
         </div>
       } @else {
         <table mat-table [dataSource]="services()" class="full-width">
@@ -73,12 +69,8 @@ import { ServiceFormComponent } from '../service-form/service-form.component';
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let s">
               <div class="actions">
-                <button mat-icon-button matTooltip="Editar" (click)="openForm(s)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Excluir" class="danger-btn" (click)="confirmDelete(s)">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+                <button mat-button (click)="openForm(s)">Editar</button>
+                <button mat-button class="danger-btn" (click)="confirmDelete(s)">Excluir</button>
               </div>
             </td>
           </ng-container>

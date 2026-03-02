@@ -20,20 +20,14 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
 @Component({
   selector: 'app-payment-method-dialog',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule],
   template: `
     <div class="dialog-container">
       <h3>Selecione o Método de Pagamento</h3>
       <div class="method-buttons">
-        <button mat-flat-button color="primary" (click)="select('pix')">
-          <mat-icon>qr_code</mat-icon> PIX
-        </button>
-        <button mat-flat-button color="primary" (click)="select('cartao')">
-          <mat-icon>credit_card</mat-icon> Cartão
-        </button>
-        <button mat-flat-button color="primary" (click)="select('dinheiro')">
-          <mat-icon>payments</mat-icon> Dinheiro
-        </button>
+        <button mat-flat-button color="primary" (click)="select('pix')">PIX</button>
+        <button mat-flat-button color="primary" (click)="select('cartao')">Cartão</button>
+        <button mat-flat-button color="primary" (click)="select('dinheiro')">Dinheiro</button>
       </div>
       <button mat-button (click)="dialogRef.close()">Cancelar</button>
     </div>
@@ -174,17 +168,11 @@ export class PaymentMethodDialogComponent {
             <th mat-header-cell *matHeaderCellDef>Ações</th>
             <td mat-cell *matCellDef="let t">
               @if (t.invoiceUrl) {
-                <a mat-button color="accent" [href]="t.invoiceUrl" target="_blank">
-                  <mat-icon>open_in_new</mat-icon> Ver Cobrança
-                </a>
+                <a mat-button color="accent" [href]="t.invoiceUrl" target="_blank">Ver Cobrança</a>
               }
               @if (t.status === 'Pending') {
-                <button mat-button color="primary" (click)="openPaymentDialog(t)">
-                  <mat-icon>payment</mat-icon> Registrar Pagamento
-                </button>
-                <button mat-button color="warn" (click)="cancelTransaction(t)">
-                  <mat-icon>cancel</mat-icon> Cancelar
-                </button>
+                <button mat-button color="primary" (click)="openPaymentDialog(t)">Registrar Pagamento</button>
+                <button mat-button color="warn" (click)="cancelTransaction(t)">Cancelar</button>
               }
             </td>
           </ng-container>

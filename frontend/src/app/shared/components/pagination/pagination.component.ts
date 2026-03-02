@@ -1,23 +1,22 @@
 import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule],
   template: `
     <div class="pagination">
-      <button mat-icon-button
+      <button mat-button
         [disabled]="!hasPreviousPage()"
         (click)="pageChange.emit(pageNumber() - 1)">
-        <mat-icon>chevron_left</mat-icon>
+        Anterior
       </button>
       <span class="page-info">Página {{ pageNumber() }} de {{ totalPages() }}</span>
-      <button mat-icon-button
+      <button mat-button
         [disabled]="!hasNextPage()"
         (click)="pageChange.emit(pageNumber() + 1)">
-        <mat-icon>chevron_right</mat-icon>
+        Próxima
       </button>
       <span class="total-info">({{ totalCount() }} itens)</span>
     </div>

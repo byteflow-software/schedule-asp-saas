@@ -71,11 +71,9 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <div class="payment-actions">
             <a mat-flat-button color="primary" class="payment-btn"
               [href]="createdAppointment()!.transaction!.invoiceUrl" target="_blank">
-              <mat-icon>open_in_new</mat-icon> Abrir Link de Pagamento
+              Abrir Link de Pagamento
             </a>
-            <button mat-stroked-button class="copy-btn" (click)="copyPaymentLink()">
-              <mat-icon>content_copy</mat-icon> Copiar Link
-            </button>
+            <button mat-stroked-button class="copy-btn" (click)="copyPaymentLink()">Copiar Link</button>
           </div>
         }
 
@@ -106,9 +104,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
               </mat-form-field>
 
               @if (!showNewCustomer) {
-                <button mat-stroked-button type="button" (click)="showNewCustomer = true" class="new-btn">
-                  <mat-icon>person_add</mat-icon> Novo Cliente
-                </button>
+                <button mat-stroked-button type="button" (click)="showNewCustomer = true" class="new-btn">Novo Cliente</button>
               } @else {
                 <div class="new-customer-form">
                   <h4>Cadastrar Novo Cliente</h4>
@@ -140,9 +136,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
 
               <div class="step-actions">
                 <span></span>
-                <button mat-flat-button color="primary" matStepperNext [disabled]="clientForm.get('customerId')?.invalid">
-                  Próximo <mat-icon>arrow_forward</mat-icon>
-                </button>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="clientForm.get('customerId')?.invalid">Próximo</button>
               </div>
             </form>
           </mat-step>
@@ -180,11 +174,9 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
               }
 
               <div class="step-actions">
-                <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
+                <button mat-button matStepperPrevious>Voltar</button>
                 <button mat-flat-button color="primary" matStepperNext
-                  [disabled]="serviceForm.invalid" (click)="loadVacancies()">
-                  Próximo <mat-icon>arrow_forward</mat-icon>
-                </button>
+                  [disabled]="serviceForm.invalid" (click)="loadVacancies()">Próximo</button>
               </div>
             </form>
           </mat-step>
@@ -223,10 +215,8 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
               </div>
 
               <div class="step-actions">
-                <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
-                <button mat-flat-button color="primary" matStepperNext [disabled]="timeForm.invalid">
-                  Próximo <mat-icon>arrow_forward</mat-icon>
-                </button>
+                <button mat-button matStepperPrevious>Voltar</button>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="timeForm.invalid">Próximo</button>
               </div>
             </form>
           </mat-step>
@@ -265,9 +255,8 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
               </mat-form-field>
 
               <div class="step-actions">
-                <button mat-button matStepperPrevious><mat-icon>arrow_back</mat-icon> Voltar</button>
+                <button mat-button matStepperPrevious>Voltar</button>
                 <button mat-flat-button color="primary" [disabled]="saving" (click)="save()">
-                  <mat-icon>check</mat-icon>
                   {{ saving ? 'Criando...' : 'Criar Agendamento' }}
                 </button>
               </div>

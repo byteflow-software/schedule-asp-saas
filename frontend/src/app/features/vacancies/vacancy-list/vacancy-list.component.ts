@@ -42,9 +42,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <h2>Vagas</h2>
           <p class="page-subtitle">Gerencie os hor\u00e1rios dispon\u00edveis</p>
         </div>
-        <button mat-flat-button color="primary" (click)="openForm()">
-          <mat-icon>add</mat-icon> Abrir Vagas
-        </button>
+        <button mat-flat-button color="primary" (click)="openForm()">Abrir Vagas</button>
       </div>
 
       <div class="filters">
@@ -83,9 +81,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <mat-icon>event_available</mat-icon>
           <h4>Nenhuma vaga encontrada</h4>
           <p>Abra novas vagas para que clientes possam agendar</p>
-          <button mat-flat-button color="primary" (click)="openForm()">
-            <mat-icon>add</mat-icon> Abrir Vagas
-          </button>
+          <button mat-flat-button color="primary" (click)="openForm()">Abrir Vagas</button>
         </div>
       } @else {
         <table mat-table [dataSource]="vacancies()" class="full-width">
@@ -124,9 +120,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let v">
               @if (!v.isBooked) {
-                <button mat-icon-button matTooltip="Excluir" class="danger-btn" (click)="confirmDelete(v)">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+                <button mat-button class="danger-btn" (click)="confirmDelete(v)">Excluir</button>
               }
             </td>
           </ng-container>

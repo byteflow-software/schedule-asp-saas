@@ -113,7 +113,6 @@ import { TenantDto } from '../../../core/models/tenant.model';
               <mat-spinner diameter="18"></mat-spinner>
               <span>Salvando...</span>
             } @else {
-              <mat-icon>save</mat-icon>
               <span>Salvar Alterações</span>
             }
           </button>
@@ -184,7 +183,6 @@ import { TenantDto } from '../../../core/models/tenant.model';
                 <mat-spinner diameter="18"></mat-spinner>
                 <span>Validando...</span>
               } @else {
-                <mat-icon>verified</mat-icon>
                 <span>Validar Token</span>
               }
             </button>

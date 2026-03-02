@@ -31,9 +31,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <h2>Clientes</h2>
           <p class="page-subtitle">Gerencie sua base de clientes</p>
         </div>
-        <button mat-flat-button color="primary" (click)="openForm()">
-          <mat-icon>person_add</mat-icon> Novo Cliente
-        </button>
+        <button mat-flat-button color="primary" (click)="openForm()">Novo Cliente</button>
       </div>
 
       <div class="search-bar">
@@ -55,9 +53,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <h4>{{ search ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado' }}</h4>
           <p>{{ search ? 'Tente outro termo de busca' : 'Comece adicionando seu primeiro cliente' }}</p>
           @if (!search) {
-            <button mat-flat-button color="primary" (click)="openForm()">
-              <mat-icon>add</mat-icon> Adicionar Cliente
-            </button>
+            <button mat-flat-button color="primary" (click)="openForm()">Adicionar Cliente</button>
           }
         </div>
       } @else {
@@ -91,12 +87,8 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let c">
               <div class="actions">
-                <button mat-icon-button matTooltip="Editar" (click)="openForm(c)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Excluir" class="danger-btn" (click)="confirmDelete(c)">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+                <button mat-button (click)="openForm(c)">Editar</button>
+                <button mat-button class="danger-btn" (click)="confirmDelete(c)">Excluir</button>
               </div>
             </td>
           </ng-container>

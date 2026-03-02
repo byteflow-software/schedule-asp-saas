@@ -17,19 +17,15 @@ import { AppointmentFormComponent } from '../appointment-form/appointment-form.c
       <div class="page-header">
         <h2>Calendário Semanal</h2>
         <div>
-          <a mat-button routerLink="/appointments">
-            <mat-icon>list</mat-icon> Lista
-          </a>
-          <button mat-flat-button color="primary" (click)="openForm()">
-            <mat-icon>add</mat-icon> Novo
-          </button>
+          <a mat-button routerLink="/appointments">Lista</a>
+          <button mat-flat-button color="primary" (click)="openForm()">Novo</button>
         </div>
       </div>
 
       <div class="week-nav">
-        <button mat-icon-button (click)="prevWeek()"><mat-icon>chevron_left</mat-icon></button>
+        <button mat-button (click)="prevWeek()">Anterior</button>
         <span class="week-label">{{ weekLabel }}</span>
-        <button mat-icon-button (click)="nextWeek()"><mat-icon>chevron_right</mat-icon></button>
+        <button mat-button (click)="nextWeek()">Próxima</button>
         <button mat-button (click)="goToday()">Hoje</button>
       </div>
 

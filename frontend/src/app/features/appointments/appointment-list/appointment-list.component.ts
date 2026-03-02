@@ -38,12 +38,8 @@ import { CurrencyCentsPipe } from '../../../shared/pipes/currency-cents.pipe';
           <p class="page-subtitle">Gerencie seus agendamentos</p>
         </div>
         <div class="header-actions">
-          <a mat-button routerLink="/appointments/calendar">
-            <mat-icon>calendar_view_week</mat-icon> Calendário
-          </a>
-          <button mat-flat-button color="primary" (click)="openForm()">
-            <mat-icon>add</mat-icon> Novo Agendamento
-          </button>
+          <a mat-button routerLink="/appointments/calendar">Calendário</a>
+          <button mat-flat-button color="primary" (click)="openForm()">Novo Agendamento</button>
         </div>
       </div>
 
@@ -113,13 +109,9 @@ import { CurrencyCentsPipe } from '../../../shared/pipes/currency-cents.pipe';
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let a">
               <div class="actions">
-                <button mat-icon-button matTooltip="Ver Detalhes" (click)="viewDetail(a)">
-                  <mat-icon>visibility</mat-icon>
-                </button>
+                <button mat-button (click)="viewDetail(a)">Ver</button>
                 @if (a.status === 'PendingPayment' || a.status === 'Confirmed') {
-                  <button mat-icon-button matTooltip="Cancelar" class="danger-btn" (click)="confirmCancel(a)">
-                    <mat-icon>cancel</mat-icon>
-                  </button>
+                  <button mat-button class="danger-btn" (click)="confirmCancel(a)">Cancelar</button>
                 }
               </div>
             </td>

@@ -70,14 +70,10 @@ import { TenantService } from '../../../core/services/tenant.service';
               <mat-spinner diameter="18"></mat-spinner>
               <span>Validando...</span>
             } @else {
-              <ng-container>
-                <mat-icon>verified</mat-icon>
-                <span>Validar e Salvar</span>
-              </ng-container>
+              <span>Validar e Salvar</span>
             }
           </button>
           <button mat-button class="action-btn secondary-btn" (click)="goToSettings()">
-            <mat-icon>settings</mat-icon>
             <span>Ir para Configurações</span>
           </button>
         </div>
@@ -89,10 +85,7 @@ import { TenantService } from '../../../core/services/tenant.service';
           <h2>Integração Configurada!</h2>
           <p class="subtitle">Sua conta Asaas foi conectada com sucesso. Agora você pode criar agendamentos com cobrança automática.</p>
           <button mat-flat-button color="primary" class="action-btn primary-btn" (click)="dialogRef.close(true)">
-            <ng-container>
-              <mat-icon>arrow_forward</mat-icon>
-              <span>Continuar</span>
-            </ng-container>
+            <span>Continuar</span>
           </button>
         </div>
       }

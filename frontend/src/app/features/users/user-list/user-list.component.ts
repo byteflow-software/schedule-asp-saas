@@ -26,9 +26,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
           <h2>Equipe</h2>
           <p class="page-subtitle">Gerencie os membros da equipe</p>
         </div>
-        <button mat-flat-button color="primary" (click)="openForm()">
-          <mat-icon>person_add</mat-icon> Novo Membro
-        </button>
+        <button mat-flat-button color="primary" (click)="openForm()">Novo Membro</button>
       </div>
 
       @if (loading()) {
@@ -68,9 +66,7 @@ import { DateFormatPipe } from '../../../shared/pipes/date-format.pipe';
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let u">
               @if (u.isActive) {
-                <button mat-icon-button matTooltip="Desativar" class="danger-btn" (click)="confirmDeactivate(u)">
-                  <mat-icon>block</mat-icon>
-                </button>
+                <button mat-button class="danger-btn" (click)="confirmDeactivate(u)">Desativar</button>
               }
             </td>
           </ng-container>
