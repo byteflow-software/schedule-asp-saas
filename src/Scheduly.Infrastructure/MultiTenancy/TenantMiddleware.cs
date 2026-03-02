@@ -17,7 +17,8 @@ public class TenantMiddleware
         "/health/ready",
         "/health/live",
         "/swagger",
-        "/api/error-logs"
+        "/api/error-logs",
+        "/api/webhooks"
     };
 
     public TenantMiddleware(RequestDelegate next)
