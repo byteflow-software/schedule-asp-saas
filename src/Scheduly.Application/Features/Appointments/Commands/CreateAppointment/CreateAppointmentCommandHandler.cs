@@ -16,6 +16,7 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IEmailService _emailService;
     private readonly IAsaasService _asaasService;
+    private readonly IErrorLogService _errorLogService;
     private readonly ILogger<CreateAppointmentCommandHandler> _logger;
 
     public CreateAppointmentCommandHandler(
@@ -24,6 +25,7 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         IDateTimeProvider dateTimeProvider,
         IEmailService emailService,
         IAsaasService asaasService,
+        IErrorLogService errorLogService,
         ILogger<CreateAppointmentCommandHandler> logger)
     {
         _context = context;
@@ -31,6 +33,7 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         _dateTimeProvider = dateTimeProvider;
         _emailService = emailService;
         _asaasService = asaasService;
+        _errorLogService = errorLogService;
         _logger = logger;
     }
 
@@ -183,6 +186,21 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create Asaas payment for transaction {TransactionId}", transaction.Id);
+
+            await _errorLogService.LogAsync(new Domain.Entities.ErrorLog
+            {
+                Level = "Error",
+                Message = $"Falha ao criar pagamento Asaas para transação {transaction.ReferenceNumber}: {ex.Message}",
+                ExceptionType = ex.GetType().FullName,
+                StackTrace = ex.StackTrace,
+                Source = "CreateAppointmentCommandHandler.TryCreateAsaasPaymentAsync",
+                RequestPath = "/api/appointments",
+                RequestMethod = "POST",
+                TenantId = tenantId,
+                ExternalRequestUrl = ex.Data["AsaasRequestUrl"] as string,
+                ExternalResponseBody = ex.Data["AsaasResponseBody"] as string,
+                ExternalStatusCode = ex.Data["AsaasStatusCode"] as int?,
+            });
         }
     }
 }

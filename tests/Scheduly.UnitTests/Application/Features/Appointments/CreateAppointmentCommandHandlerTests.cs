@@ -109,7 +109,13 @@ public class CreateAppointmentCommandHandlerTests : IDisposable
         return new CreateAppointmentCommandHandler(
             _context, _tenantService, new DateTimeProvider(),
             new StubEmailService(), new StubAsaasService(),
+            new StubErrorLogService(),
             NullLogger<CreateAppointmentCommandHandler>.Instance);
+    }
+
+    private class StubErrorLogService : IErrorLogService
+    {
+        public Task LogAsync(Scheduly.Domain.Entities.ErrorLog errorLog) => Task.CompletedTask;
     }
 
     private class StubEmailService : IEmailService

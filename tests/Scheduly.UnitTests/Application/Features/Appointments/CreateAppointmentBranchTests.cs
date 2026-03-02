@@ -116,6 +116,7 @@ public class CreateAppointmentBranchTests : IDisposable
         var handler = new CreateAppointmentCommandHandler(
             _context, _tenantService, new DateTimeProvider(),
             new StubEmailService(), new FailingAsaasService(),
+            new StubErrorLogService(),
             NullLogger<CreateAppointmentCommandHandler>.Instance);
 
         var result = await handler.Handle(new CreateAppointmentCommand(
@@ -131,7 +132,13 @@ public class CreateAppointmentBranchTests : IDisposable
     private CreateAppointmentCommandHandler CreateHandler() =>
         new(_context, _tenantService, new DateTimeProvider(),
             new StubEmailService(), new StubAsaasService(),
+            new StubErrorLogService(),
             NullLogger<CreateAppointmentCommandHandler>.Instance);
+
+    private class StubErrorLogService : Scheduly.Application.Common.Interfaces.IErrorLogService
+    {
+        public Task LogAsync(Scheduly.Domain.Entities.ErrorLog errorLog) => Task.CompletedTask;
+    }
 
     private class FailingAsaasService : Scheduly.Application.Common.Interfaces.IAsaasService
     {
