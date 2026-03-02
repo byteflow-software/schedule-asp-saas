@@ -58,7 +58,10 @@ public static class DependencyInjection
 
         // Asaas
         services.Configure<AsaasSettings>(configuration.GetSection(AsaasSettings.SectionName));
-        services.AddHttpClient<IAsaasService, AsaasService>();
+        services.AddHttpClient<IAsaasService, AsaasService>(client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Scheduly/1.0");
+        });
 
         // Jobs
         services.AddScoped<AppointmentReminderJob>();
