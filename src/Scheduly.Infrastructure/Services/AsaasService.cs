@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Scheduly.Application.Common.Interfaces;
 using Scheduly.Application.Common.Models.Asaas;
+using Scheduly.Domain.Exceptions;
 
 namespace Scheduly.Infrastructure.Services;
 
@@ -63,15 +64,17 @@ public class AsaasService : IAsaasService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Asaas CreateCustomer failed: {StatusCode} {Body}", response.StatusCode, body);
-            throw new InvalidOperationException($"Asaas API error: {response.StatusCode}");
+            throw AsaasException("ASAAS_ERROR",
+                $"Erro na API do Asaas ao criar cliente: {response.StatusCode}",
+                request.RequestUri, body, (int)response.StatusCode);
         }
 
         _logger.LogDebug("Asaas CreateCustomer response: {Body}", body);
         var result = JsonSerializer.Deserialize<AsaasApiCustomerResult>(body, ReadOptions)
-            ?? throw new InvalidOperationException("Failed to parse Asaas customer response.");
+            ?? throw new DomainException("ASAAS_PARSE_ERROR", "Resposta inesperada da API do Asaas.");
 
         return new AsaasCustomerResponse(
-            result.Id ?? throw new InvalidOperationException("Asaas customer response missing 'id'."),
+            result.Id ?? throw new DomainException("ASAAS_PARSE_ERROR", "Resposta da API do Asaas sem ID do cliente."),
             result.Name ?? "",
             result.CpfCnpj ?? "");
     }
@@ -114,15 +117,17 @@ public class AsaasService : IAsaasService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Asaas CreatePayment failed: {StatusCode} {Body}", response.StatusCode, body);
-            throw new InvalidOperationException($"Asaas API error: {response.StatusCode}");
+            throw AsaasException("ASAAS_ERROR",
+                $"Erro na API do Asaas ao criar pagamento: {response.StatusCode}",
+                request.RequestUri, body, (int)response.StatusCode);
         }
 
         _logger.LogDebug("Asaas CreatePayment response: {Body}", body);
         var result = JsonSerializer.Deserialize<AsaasApiPaymentResult>(body, ReadOptions)
-            ?? throw new InvalidOperationException("Failed to parse Asaas payment response.");
+            ?? throw new DomainException("ASAAS_PARSE_ERROR", "Resposta inesperada da API do Asaas.");
 
         return new AsaasPaymentResponse(
-            result.Id ?? throw new InvalidOperationException("Asaas payment response missing 'id'."),
+            result.Id ?? throw new DomainException("ASAAS_PARSE_ERROR", "Resposta da API do Asaas sem ID do pagamento."),
             result.Status ?? "PENDING",
             result.BillingType,
             result.InvoiceUrl,
@@ -135,22 +140,43 @@ public class AsaasService : IAsaasService
         using var request = new HttpRequestMessage(HttpMethod.Get, GetBaseUrl(apiKey) + "myAccount");
         request.Headers.Add("access_token", apiKey);
 
-        var response = await _httpClient.SendAsync(request, ct);
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.SendAsync(request, ct);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Failed to connect to Asaas API");
+            throw new DomainException("ASAAS_CONNECTION_ERROR", "Não foi possível conectar à API do Asaas. Tente novamente.");
+        }
+
         var body = await response.Content.ReadAsStringAsync(ct);
 
         _logger.LogInformation("Asaas ValidateApiKey status: {StatusCode}, body: {Body}", response.StatusCode, body);
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException("Invalid Asaas API key.");
+            throw AsaasException("INVALID_ASAAS_KEY",
+                "Chave da API do Asaas inválida. Verifique e tente novamente.",
+                request.RequestUri, body, (int)response.StatusCode);
         }
 
         var result = JsonSerializer.Deserialize<AsaasApiAccountResult>(body, ReadOptions)
-            ?? throw new InvalidOperationException("Failed to parse Asaas account response.");
+            ?? throw new DomainException("ASAAS_PARSE_ERROR", "Resposta inesperada da API do Asaas.");
 
         return new AsaasAccountResponse(
             result.WalletId ?? result.Id ?? "unknown",
             result.Name ?? result.CompanyName ?? "");
+    }
+
+    private static DomainException AsaasException(string code, string message, Uri? requestUrl, string? responseBody, int statusCode)
+    {
+        var ex = new DomainException(code, message);
+        ex.Data["AsaasRequestUrl"] = requestUrl?.ToString();
+        ex.Data["AsaasResponseBody"] = responseBody?.Length > 4000 ? responseBody[..4000] : responseBody;
+        ex.Data["AsaasStatusCode"] = statusCode;
+        return ex;
     }
 
     // Internal DTOs for Asaas API JSON responses

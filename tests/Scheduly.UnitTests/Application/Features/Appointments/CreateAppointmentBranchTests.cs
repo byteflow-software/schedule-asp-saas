@@ -138,16 +138,16 @@ public class CreateAppointmentBranchTests : IDisposable
         public Task<Scheduly.Application.Common.Models.Asaas.AsaasCustomerResponse> CreateOrUpdateCustomerAsync(
             string apiKey, string name, string cpfCnpj, string email, string? phone,
             string externalReference, CancellationToken ct)
-            => throw new InvalidOperationException("Asaas API error");
+            => throw new Scheduly.Domain.Exceptions.DomainException("ASAAS_ERROR", "Asaas API error");
 
         public Task<Scheduly.Application.Common.Models.Asaas.AsaasPaymentResponse> CreatePaymentWithSplitAsync(
             string apiKey, string asaasCustomerId, int amountInCents,
             string description, string externalReference, CancellationToken ct)
-            => throw new InvalidOperationException("Asaas API error");
+            => throw new Scheduly.Domain.Exceptions.DomainException("ASAAS_ERROR", "Asaas API error");
 
         public Task<Scheduly.Application.Common.Models.Asaas.AsaasAccountResponse> ValidateApiKeyAsync(
             string apiKey, CancellationToken ct)
-            => throw new InvalidOperationException("Asaas API error");
+            => throw new Scheduly.Domain.Exceptions.DomainException("ASAAS_ERROR", "Asaas API error");
     }
 
     public void Dispose()

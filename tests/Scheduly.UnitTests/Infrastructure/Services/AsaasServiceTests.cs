@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Scheduly.Domain.Exceptions;
 using Scheduly.Infrastructure.Services;
 
 namespace Scheduly.UnitTests.Infrastructure.Services;
@@ -38,7 +39,7 @@ public class AsaasServiceTests
         var act = () => sut.CreateOrUpdateCustomerAsync(
             "$aact_prod_key", "John", "12345678901", "john@test.com", null, "ext_ref", CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>().Where(e => e.Code == "ASAAS_ERROR");
     }
 
     [Fact]
@@ -87,7 +88,7 @@ public class AsaasServiceTests
         var act = () => sut.CreatePaymentWithSplitAsync(
             "$aact_prod_key", "cus_123", 5000, "Service", "ext_ref", CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>().Where(e => e.Code == "ASAAS_ERROR");
     }
 
     [Fact]
@@ -111,7 +112,7 @@ public class AsaasServiceTests
 
         var act = () => sut.ValidateApiKeyAsync("invalid_key", CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Invalid*");
+        await act.Should().ThrowAsync<DomainException>().Where(e => e.Code == "INVALID_ASAAS_KEY");
     }
 
     [Fact]
