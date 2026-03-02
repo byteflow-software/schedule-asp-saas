@@ -134,6 +134,9 @@ public class CreateAppointmentCommandHandlerTests : IDisposable
 
         public Task<AsaasAccountResponse> ValidateApiKeyAsync(string apiKey, CancellationToken ct)
             => Task.FromResult(new AsaasAccountResponse("wallet_test", "Test Account"));
+
+        public Task<AsaasWebhookListResponse> ListWebhooksAsync(string apiKey, CancellationToken ct)
+            => Task.FromResult(new AsaasWebhookListResponse([]));
     }
 
     public void Dispose()

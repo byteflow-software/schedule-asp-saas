@@ -155,6 +155,10 @@ public class CreateAppointmentBranchTests : IDisposable
         public Task<Scheduly.Application.Common.Models.Asaas.AsaasAccountResponse> ValidateApiKeyAsync(
             string apiKey, CancellationToken ct)
             => throw new Scheduly.Domain.Exceptions.DomainException("ASAAS_ERROR", "Asaas API error");
+
+        public Task<Scheduly.Application.Common.Models.Asaas.AsaasWebhookListResponse> ListWebhooksAsync(
+            string apiKey, CancellationToken ct)
+            => throw new Scheduly.Domain.Exceptions.DomainException("ASAAS_ERROR", "Asaas API error");
     }
 
     public void Dispose()

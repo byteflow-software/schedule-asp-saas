@@ -111,5 +111,8 @@ public class ValidateAsaasKeyCommandHandlerTests : IDisposable
 
         public Task<AsaasAccountResponse> ValidateApiKeyAsync(string apiKey, CancellationToken ct)
             => Task.FromResult(new AsaasAccountResponse("wallet_test123", "Test Account"));
+
+        public Task<AsaasWebhookListResponse> ListWebhooksAsync(string apiKey, CancellationToken ct)
+            => Task.FromResult(new AsaasWebhookListResponse([]));
     }
 }

@@ -188,6 +188,37 @@ import { TenantDto } from '../../../core/models/tenant.model';
             </button>
           </div>
         </div>
+
+        @if (tenant()?.hasAsaasIntegration) {
+          <mat-divider></mat-divider>
+
+          <div class="token-section">
+            <p class="token-description"><strong>Webhook</strong> — Configure no painel Asaas para receber confirmações de pagamento automaticamente.</p>
+            <div class="url-copy-box">
+              <code>{{ webhookUrl() }}</code>
+              <button mat-button class="copy-btn" (click)="copyWebhookUrl()">
+                {{ copied() ? 'Copiado!' : 'Copiar' }}
+              </button>
+            </div>
+
+            @if (webhookStatus()) {
+              <div class="webhook-result" [class]="webhookStatus()">
+                <mat-icon>{{ webhookStatus() === 'ok' ? 'check_circle' : 'error_outline' }}</mat-icon>
+                <span>{{ webhookStatus() === 'ok' ? 'Webhook configurado corretamente!' : 'Webhook não encontrado. Configure no painel Asaas.' }}</span>
+              </div>
+            }
+
+            <button mat-flat-button color="primary" class="btn-action"
+              [disabled]="checkingWebhook()" (click)="checkWebhook()" style="margin-top: 12px;">
+              @if (checkingWebhook()) {
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Verificando...</span>
+              } @else {
+                <span>Verificar Webhook</span>
+              }
+            </button>
+          </div>
+        }
       </div>
     }
   `,
@@ -344,6 +375,47 @@ import { TenantDto } from '../../../core/models/tenant.model';
       .token-field { flex: 1; }
     }
 
+    .url-copy-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gray-50, #F9FAFB);
+      border: 1px solid var(--gray-200, #E5E7EB);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 12px 0;
+
+      code {
+        flex: 1;
+        font-size: 12px;
+        color: var(--gray-700, #374151);
+        word-break: break-all;
+      }
+
+      .copy-btn {
+        min-width: 70px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary, #4F46E5);
+      }
+    }
+
+    .webhook-result {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+      &.ok { background: #D1FAE5; color: #065F46; }
+      &.error { background: #FEE2E2; color: #991B1B; }
+    }
+
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
       .span-2 { grid-column: span 1; }
@@ -368,6 +440,10 @@ export class TenantInfoComponent implements OnInit {
   validatingAsaas = signal(false);
   showToken = signal(false);
   asaasApiKey = '';
+  webhookUrl = signal('');
+  copied = signal(false);
+  checkingWebhook = signal(false);
+  webhookStatus = signal<'ok' | 'error' | ''>('');
 
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -403,6 +479,7 @@ export class TenantInfoComponent implements OnInit {
           logoUrl: tenant.logoUrl ?? '',
         });
         this.loading.set(false);
+        if (tenant.hasAsaasIntegration) this.loadWebhookUrl();
       },
       error: () => { this.loading.set(false); },
     });
@@ -420,6 +497,34 @@ export class TenantInfoComponent implements OnInit {
       error: () => {
         this.saving.set(false);
         this.snackBar.open('Erro ao atualizar dados.', 'OK', { duration: 3000, panelClass: ['snackbar-error'] });
+      },
+    });
+  }
+
+  private loadWebhookUrl(): void {
+    this.tenantService.checkWebhookStatus().subscribe({
+      next: (result) => { this.webhookUrl.set(result.webhookUrl); },
+      error: () => { this.webhookUrl.set(`${window.location.origin}/api/webhooks/asaas`); },
+    });
+  }
+
+  copyWebhookUrl(): void {
+    navigator.clipboard.writeText(this.webhookUrl());
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
+  }
+
+  checkWebhook(): void {
+    this.checkingWebhook.set(true);
+    this.webhookStatus.set('');
+    this.tenantService.checkWebhookStatus().subscribe({
+      next: (result) => {
+        this.checkingWebhook.set(false);
+        this.webhookStatus.set(result.configured ? 'ok' : 'error');
+      },
+      error: () => {
+        this.checkingWebhook.set(false);
+        this.webhookStatus.set('error');
       },
     });
   }

@@ -13,4 +13,6 @@ public interface IAsaasService
         string description, string externalReference, CancellationToken ct);
 
     Task<AsaasAccountResponse> ValidateApiKeyAsync(string apiKey, CancellationToken ct);
+
+    Task<AsaasWebhookListResponse> ListWebhooksAsync(string apiKey, CancellationToken ct);
 }

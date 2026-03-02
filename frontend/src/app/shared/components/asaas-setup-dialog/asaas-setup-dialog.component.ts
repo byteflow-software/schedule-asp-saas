@@ -83,10 +83,56 @@ import { TenantService } from '../../../core/services/tenant.service';
             <mat-icon>check_circle</mat-icon>
           </div>
           <h2>Integração Configurada!</h2>
-          <p class="subtitle">Sua conta Asaas foi conectada com sucesso. Agora você pode criar agendamentos com cobrança automática.</p>
-          <button mat-flat-button color="primary" class="action-btn primary-btn" (click)="dialogRef.close(true)">
-            <span>Continuar</span>
-          </button>
+          <p class="subtitle">Sua conta Asaas foi conectada. Agora configure o Webhook para receber confirmações de pagamento automaticamente.</p>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-text">
+                No painel Asaas, vá em <strong>Minha Conta</strong> → <strong>Integrações</strong> → <strong>Webhooks</strong>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">5</div>
+              <div class="step-text">
+                Crie um novo webhook com a URL abaixo:
+                <div class="url-copy-box">
+                  <code>{{ webhookUrl() }}</code>
+                  <button mat-button class="copy-btn" (click)="copyWebhookUrl()">
+                    {{ copied() ? 'Copiado!' : 'Copiar' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">6</div>
+              <div class="step-text">
+                Selecione os eventos: <strong>Cobrança confirmada</strong>, <strong>Cobrança recebida</strong> e <strong>Cobrança estornada</strong>
+              </div>
+            </div>
+          </div>
+
+          @if (webhookStatus()) {
+            <div class="webhook-result" [class]="webhookStatus()">
+              <mat-icon>{{ webhookStatus() === 'ok' ? 'check_circle' : 'error_outline' }}</mat-icon>
+              <span>{{ webhookStatus() === 'ok' ? 'Webhook configurado corretamente!' : 'Webhook não encontrado. Configure e tente novamente.' }}</span>
+            </div>
+          }
+
+          <div class="dialog-actions">
+            <button mat-flat-button color="primary" class="action-btn primary-btn"
+              [disabled]="checkingWebhook()" (click)="checkWebhook()">
+              @if (checkingWebhook()) {
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Verificando...</span>
+              } @else {
+                <span>Verificar Webhook</span>
+              }
+            </button>
+            <button mat-button class="action-btn secondary-btn" (click)="dialogRef.close(true)">
+              <span>Pular e Continuar</span>
+            </button>
+          </div>
         </div>
       }
     </div>
@@ -244,6 +290,50 @@ import { TenantService } from '../../../core/services/tenant.service';
 
     .success-state {
       padding: 16px 0;
+      text-align: center;
+    }
+
+    .url-copy-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-top: 8px;
+
+      code {
+        flex: 1;
+        font-size: 11px;
+        color: #374151;
+        word-break: break-all;
+        text-align: left;
+      }
+
+      .copy-btn {
+        min-width: 70px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #4F46E5;
+      }
+    }
+
+    .webhook-result {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      padding: 10px 16px;
+      border-radius: 8px;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+      &.ok { background: #D1FAE5; color: #065F46; }
+      &.error { background: #FEE2E2; color: #991B1B; }
     }
 
     .success-icon {
@@ -276,6 +366,11 @@ export class AsaasSetupDialogComponent {
   error = signal('');
   success = signal(false);
 
+  webhookUrl = signal('');
+  copied = signal(false);
+  checkingWebhook = signal(false);
+  webhookStatus = signal<'ok' | 'error' | ''>('');
+
   validate(): void {
     if (!this.apiKey) return;
     this.validating.set(true);
@@ -284,6 +379,7 @@ export class AsaasSetupDialogComponent {
       next: () => {
         this.validating.set(false);
         this.success.set(true);
+        this.loadWebhookUrl();
       },
       error: () => {
         this.validating.set(false);
@@ -295,5 +391,33 @@ export class AsaasSetupDialogComponent {
   goToSettings(): void {
     this.dialogRef.close(false);
     this.router.navigate(['/settings']);
+  }
+
+  private loadWebhookUrl(): void {
+    this.tenantService.checkWebhookStatus().subscribe({
+      next: (result) => { this.webhookUrl.set(result.webhookUrl); },
+      error: () => { this.webhookUrl.set(`${window.location.origin}/api/webhooks/asaas`); },
+    });
+  }
+
+  copyWebhookUrl(): void {
+    navigator.clipboard.writeText(this.webhookUrl());
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
+  }
+
+  checkWebhook(): void {
+    this.checkingWebhook.set(true);
+    this.webhookStatus.set('');
+    this.tenantService.checkWebhookStatus().subscribe({
+      next: (result) => {
+        this.checkingWebhook.set(false);
+        this.webhookStatus.set(result.configured ? 'ok' : 'error');
+      },
+      error: () => {
+        this.checkingWebhook.set(false);
+        this.webhookStatus.set('error');
+      },
+    });
   }
 }

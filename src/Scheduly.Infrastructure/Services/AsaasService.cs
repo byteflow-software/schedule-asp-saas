@@ -170,6 +170,27 @@ public class AsaasService : IAsaasService
             result.Name ?? result.CompanyName ?? "");
     }
 
+    public async Task<AsaasWebhookListResponse> ListWebhooksAsync(string apiKey, CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, GetBaseUrl(apiKey) + "webhooks");
+        request.Headers.Add("access_token", apiKey);
+
+        var response = await _httpClient.SendAsync(request, ct);
+        var body = await response.Content.ReadAsStringAsync(ct);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("Asaas ListWebhooks failed: {StatusCode} {Body}", response.StatusCode, body);
+            return new AsaasWebhookListResponse([]);
+        }
+
+        var result = JsonSerializer.Deserialize<AsaasApiWebhookListResult>(body, ReadOptions);
+        var items = result?.Data?.Select(w => new AsaasWebhookItem(
+            w.Url ?? "", w.Enabled ?? false, w.Name)).ToList() ?? [];
+
+        return new AsaasWebhookListResponse(items);
+    }
+
     private static DomainException AsaasException(string code, string message, Uri? requestUrl, string? responseBody, int statusCode)
     {
         var ex = new DomainException(code, message);
@@ -195,6 +216,18 @@ public class AsaasService : IAsaasService
         public string? InvoiceUrl { get; set; }
         public string? BankSlipUrl { get; set; }
         public string? PixQrCodeUrl { get; set; }
+    }
+
+    private sealed class AsaasApiWebhookListResult
+    {
+        public List<AsaasApiWebhookItemResult>? Data { get; set; }
+    }
+
+    private sealed class AsaasApiWebhookItemResult
+    {
+        public string? Url { get; set; }
+        public bool? Enabled { get; set; }
+        public string? Name { get; set; }
     }
 
     private sealed class AsaasApiAccountResult
